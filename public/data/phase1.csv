@@ -1,0 +1,72 @@
+Name,Type,Connect To,4G Router Quantity,5G Router Quantity Plan to be Install,IP (NEW),Subnet ,CCTV Number,IP ,Subnet ,Latitude,Longitude,Commission?,Handover?,Site Photo
+Zus,Indoor,,1,1,10.100.33.155,255.255.255.0,,,,3.04793,101.68883,FALSE,FALSE,https://drive.google.com/drive/folders/1t3i-SMyhtLaATA2_N2Dgv3htT0FQJtGh?usp=drive_link 
+Hive 5- Parking,Indoor,,1,1,10.100.11.155,255.255.255.0,,,,3.04631,101.68693,FALSE,FALSE,
+Hive 5- Towards Jalan Inovasi 2,Indoor,,1,1,10.100.11.156,255.255.255.0,,,,3.047205,101.687643,FALSE,FALSE,
+Technoflex 1,Indoor,,1,1,10.100.31.155,255.255.255.0,,,,3.04634,101.686112,FALSE,FALSE,https://drive.google.com/drive/folders/1QXFYXs3SfTVx2fwu9rPFL5VTWwduUkTg?usp=drive_link 
+Technoflex 2,Indoor,,1,1,10.100.31.156,255.255.255.0,,,,3.04634,101.686112,FALSE,FALSE,
+Hive 7 R1,Indoor,,1,1,10.100.21.155,255.255.255.0,,,,3.04734,101.69154,FALSE,FALSE,https://drive.google.com/drive/u/0/folders/1VhVJvR_3Eb6jPqp6ZgbWyuu2Fq-VlmQQ 
+Hive 7 R2,Indoor,,1,1,10.100.21.156,255.255.255.0,,,,3.04734,101.69154,FALSE,FALSE,
+T1,Outdoor,Technoflex 1,2,2,192.168.250.1,255.255.254.0,"FASA 1 - T1 HALA BIC
+FASA 1 - T1 HALA FASA 3","192.168.250.2
+192.168.250.3",255.255.254.0,3.046306,101.685593,FALSE,FALSE,https://drive.google.com/drive/folders/19VccyGIU78zZdT8_me56ASrQ6a4VpME8?usp=drive_link
+,,,,,192.168.250.7,255.255.254.0,"FASA 1 - T1 HALA IBMS
+FASA 1 - T1 HALA FASA 2","192.168.250.8
+192.168.250.9",255.255.254.0,,,FALSE,FALSE,
+T2,Outdoor,Hive 5- Towards Jalan Inovasi 2,2 (only found 1 router),1,192.168.250.13,255.255.254.0,"FASA 1 - T2 HALA BULATAN INOVASI
+FASA 1 - T2 HALA HIVE 5","192.168.250.14
+192.168.250.15",255.255.254.0,3.047684,101.687824,FALSE,FALSE,https://drive.google.com/drive/folders/1H7lRXhRbnCESIdjX4fFUrpb0RItwCPyy?usp=drive_link 
+T3,Outdoor,Zus,2 (only found 1 router),1,192.168.250.19,255.255.254.0,"FASA 1 - T3 DARI BULATAN INOVASI
+FASA 1 - T3 HALA LALUAN KLR B1
+FASA 1 - T3 HALA BULATAN INOVASI
+FASA 1 - T3 HALA LALUAN MSK B1","192.168.250.20 
+192.168.250.21
+192.168.250.22
+192.168.250.23",255.255.254.0,3.047879,101.688508,FALSE,FALSE,https://drive.google.com/drive/folders/11bgxSwGYisGhgDMwbLCJKl1la7ClWImE?usp=drive_link 
+T4,Outdoor,Hive 7 R1,2,2,192.168.250.25,255.255.254.0,"FASA 1 - T4 HALA BULATAN INOVASI
+FASA 1 - T4 DARI MIMOS & IRIS","192.168.250.26
+192.168.250.27",255.255.254.0,3.048692,101.695063,FALSE,FALSE,https://drive.google.com/drive/u/0/folders/1p_mp50qLO_apyke8787Aj4xewNy1jS_N 
+,,,,,192.168.250.31,255.255.254.0,FASA 1 - T4 DARI FASA 3,192.168.250.32,255.255.254.0,,,FALSE,FALSE,
+T5,Outdoor,Hive 5- Towards Jalan Inovasi 2,1,1,192.168.250.37,255.255.254.0,"FASA 1 - T5 TANGKI AIR
+FASA 1 - T5 TANGKI AIR PERIMETER","192.168.250.38 
+192.168.250.39",255.255.254.0,3.048681,101.695755,FALSE,FALSE,https://drive.google.com/drive/folders/13-fOmzhNJ6xVlBbuRtoMGrJ2ojYuiqtp?usp=drive_link 
+T6,Outdoor,Hive 5- Parking,2,2,192.168.250.43,255.255.254.0,"FASA 1 - T6 HALA HIVE 7
+FASA 1 - T6 HALA SIMPANG MLP 3","192.168.250.44
+192.168.250.45",255.255.254.0,3.04541,101.692362,FALSE,FALSE,https://drive.google.com/drive/folders/1KKoLht_GlFFT0WX40iPq5oNGEPmC52Em?usp=drive_link 
+,,,,,192.168.250.49,255.255.254.0,FASA 1 - T6 HALA PARKING MLP 3,192.168.250.50,255.255.254.0,,,FALSE,FALSE,
+T7,Outdoor,Hive 7 R2,2,2,192.168.250.55,255.255.254.0,"FASA 1 - T7 HALA SIMPANG NOVOSYM
+FASA 1 - T7 HALA MLP 3","192.168.250.56
+192.168.250.57",255.255.254.0,3.046605,101.691815,FALSE,FALSE,https://drive.google.com/drive/folders/1RPHwww4oWt6P4SonZT5txYY7AITh8xeg?usp=drive_link 
+,,,,,192.168.250.61,255.255.254.0,"FASA 1 - T7 HALA PATIMAS
+FASA 1 - T7 HALA HIVE 9","192.168.250.62
+192.168.250.63",255.255.254.0,,,FALSE,FALSE,
+T8,Outdoor,Technoflex 2,1 (2 routers found),1,192.168.250.67,255.255.254.0,"FASA 1 - T8 TANGKI AIR PERIMETER
+FASA 1 - T8 LALUAN TANGKI AIR","192.168.250.68
+192.168.250.69",255.255.254.0,3.04532,101.690597,FALSE,FALSE,https://drive.google.com/drive/folders/1vKPcIdV44-E95bpHAsRSeFNK1DGO4UWI?usp=drive_link 
+T9,Outdoor,Technoflex 2,2 (only found 1 router),1,192.168.250.73,255.255.254.0,"FASA 1 - T9 HALA RUMAH PANGSA
+FASA 1 - T9 HALA MLP 3
+FASA 1 - T9 HALA TECHNOFLEX","192.168.250.74
+192.168.250.75
+192.168.250.76",255.255.254.0,3.044825,101.688252,FALSE,FALSE,https://drive.google.com/drive/folders/1_DsZCocYxjaU5HLVKrSAGBbJk-txBRmG?usp=drive_link 
+T13,Outdoor,B19,2 (only found 1 router),1,192.168.250.97,255.255.254.0,"FASA 2 - T13 LALUAN KELUAR B19
+FASA 2 - T13 DARI MRANTI KE B19
+FASA 2 - T13 HALA BRAVO 19","192.168.250.98
+192.168.250.99
+192.168.250.100",255.255.254.0,3.056858,101.703524,FALSE,FALSE,https://drive.google.com/drive/folders/1qDFh9KXZMzFMX9M57LOES6qargKS9qhx?usp=drive_link 
+T14,Outdoor,B18,2 (only found 1 router),1,192.168.250.103,255.255.254.0,"FASA 2 - T14 HALA MRANTI
+FASA 2 - T14 HALA BRAVO 18
+FASA 2 - T14 LALUAN MSK BRAVO 18","192.168.250.104
+192.168.250.105
+192.168.250.106",255.255.254.0,3.05517,101.703537,FALSE,FALSE,https://drive.google.com/drive/u/0/folders/1v-Z63mozP7uxZo76L5RHzJR-XlFvKpZ3 
+B18,Indoor,,1,1,10.100.32.155,255.255.255.0,,,,3.05511,101.70357,FALSE,FALSE,
+B19,Indoor,,1,1,10.100.32.156,255.255.255.0,,,,3.05693,101.70353,FALSE,FALSE,
+,,,,,,,,,,,,,,
+Total ,,,29,24,,,27,,,,,,,
+,,,,,,,,,,,,,,
+Indoor Router ,,,9,,,,,,,,,,,
+Outdoor ,,,15,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,Phase 1 ,Phase 2 ,Phase 3,Total ,,,,,,,,
+Indoor Router ,,,9,5,5,19,,,,,,,,
+Outdoor ,,,15,7,7,29,,,,,,,,
+,,,,,,48,,,,,,,,

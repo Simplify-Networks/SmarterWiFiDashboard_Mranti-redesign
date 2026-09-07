@@ -1,0 +1,73 @@
+import { getDb } from '@/db';
+import { statuses, history } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { getSource } from '@/lib/source';
+export async function POST(req: Request) {
+  const origin = req.headers.get('origin');
+  if (origin && origin !== new URL(req.url).origin)
+    return Response.json({ error: 'Origin not allowed' }, { status: 403 });
+  let b: {
+    id: string;
+    commission: boolean;
+    handover: boolean;
+    reset?: boolean;
+  };
+  try {
+    const raw = await req.json();
+    if (!raw || typeof raw !== 'object') throw Error();
+    b = raw as typeof b;
+  } catch {
+    return Response.json({ error: 'Invalid request' }, { status: 400 });
+  }
+  if (
+    typeof b.id !== 'string' ||
+    typeof b.commission !== 'boolean' ||
+    typeof b.handover !== 'boolean' ||
+    (b.handover && !b.commission && !b.reset)
+  )
+    return Response.json(
+      { error: 'Commission the router before completing handover.' },
+      { status: 400 },
+    );
+  const data = await getSource();
+  const r = data.routers.find((r) => r.id === b.id);
+  if (!r)
+    return Response.json(
+      { error: 'Router is not in the source sheet.' },
+      { status: 400 },
+    );
+  try {
+    const db = getDb(),
+      at = new Date().toISOString();
+    const c = b.reset ? r.commission : b.commission,
+      h = b.reset ? r.handover : b.handover;
+    const mutation = b.reset
+      ? db.delete(statuses).where(eq(statuses.id, b.id))
+      : db
+          .insert(statuses)
+          .values({ id: b.id, commission: c, handover: h, updatedAt: at })
+          .onConflictDoUpdate({
+            target: statuses.id,
+            set: { commission: c, handover: h, updatedAt: at },
+          });
+    await db.batch([
+      mutation,
+      db
+        .insert(history)
+        .values({
+          id: crypto.randomUUID(),
+          routerId: b.id,
+          commission: c,
+          handover: h,
+          action: b.reset ? 'restore-source' : 'update',
+          at,
+        }),
+    ]);
+    return Response.json({ ok: true });
+  } catch {
+    return Response.json(
+      { error: 'The status could not be saved. Please try again.' },
+      { status: 503 },
+    );
+  }
+}
