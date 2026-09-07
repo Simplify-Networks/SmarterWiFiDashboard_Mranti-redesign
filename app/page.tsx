@@ -15,6 +15,8 @@ import {
   Download,
   TriangleAlert,
   CalendarDays,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -31,6 +33,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { filterByUpdateDate, malaysiaDate } from '@/lib/report-date';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,6 +48,7 @@ import {
 } from '@/components/ui/table';
 import { Router, SHEET, GIDS, parse, status } from '@/lib/routers';
 import ParkMap from './park-map';
+import { RouterPhotoHover, SitePhotoGallery } from './site-photos';
 function weekLabel() {
   const now = new Date(
     new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }),
@@ -112,6 +116,7 @@ function Badge({ r }: { r: Router }) {
 export default function Home() {
   const [routers, setRouters] = useState<Router[]>([]),
     [phase, setPhase] = useState('All phases'),
+    [theme, setTheme] = useState<'light' | 'dark'>('light'),
     [dateFrom, setDateFrom] = useState(''),
     [dateTo, setDateTo] = useState(''),
     [view, setView] = useState('map'),
@@ -126,6 +131,29 @@ export default function Home() {
     [commission, setCommission] = useState(false),
     [handover, setHandover] = useState(false),
     [saving, setSaving] = useState(false);
+  function changeTheme(next: 'light' | 'dark') {
+    setTheme(next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
+    document.documentElement.style.colorScheme = next;
+    try {
+      localStorage.setItem('mranti-theme', next);
+    } catch {}
+  }
+  useEffect(() => {
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem('mranti-theme');
+    } catch {}
+    const next =
+      saved === 'dark' ||
+      (saved !== 'light' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+        ? 'dark'
+        : 'light';
+    setTheme(next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
+    document.documentElement.style.colorScheme = next;
+  }, []);
   async function refresh() {
     setBusy(true);
     try {
@@ -262,15 +290,34 @@ export default function Home() {
           <span className="brand-divider" />
           <span className="project-tag">PARK INFRASTRUCTURE</span>
         </div>
-        <div className="partner">
-          Delivered by{' '}
-          <a href="https://simplify.network/" target="_blank" rel="noreferrer">
-            <img
-              className="simplify-logo"
-              src="/simplify-wordmark.png"
-              alt="Simplify"
+        <div className="topbar-actions">
+          <label className="theme-control">
+            <Sun size={16} />
+            <span>Light</span>
+            <Switch
+              aria-label="Dark mode"
+              checked={theme === 'dark'}
+              onCheckedChange={(checked) =>
+                changeTheme(checked ? 'dark' : 'light')
+              }
             />
-          </a>
+            <Moon size={16} />
+            <span>Dark</span>
+          </label>
+          <div className="partner">
+            Delivered by{' '}
+            <a
+              href="https://simplify.network/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img
+                className="simplify-logo"
+                src="/simplify-wordmark.png"
+                alt="Simplify"
+              />
+            </a>
+          </div>
         </div>
       </header>
       <main>
@@ -530,7 +577,7 @@ export default function Home() {
           {view === 'map' ? (
             <div className="map-layout">
               <div className="map-area">
-                <ParkMap routers={visible} onSelect={open} />
+                <ParkMap routers={visible} onSelect={open} theme={theme} />
                 <div className="map-caption">
                   <MapPinned size={14} /> MRANTI PARK{' '}
                   <span>Kuala Lumpur, Malaysia</span>
@@ -544,35 +591,33 @@ export default function Home() {
                   <p className="empty">No routers match these filters.</p>
                 ) : (
                   visible.map((r) => (
-                    <button
-                      key={r.id}
-                      onClick={() => open(r)}
-                      className="router-item"
-                    >
-                      <span
-                        className={
-                          'router-symbol ' +
-                          (r.type === 'Outdoor' ? 'outdoor' : 'indoor')
-                        }
-                      >
-                        {r.type === 'Outdoor' ? (
-                          <Antenna size={18} />
-                        ) : r.type === 'Indoor' ? (
-                          <Building2 size={18} />
-                        ) : (
-                          <RouterIcon size={18} />
-                        )}
-                      </span>
-                      <span className="router-item-main">
-                        <strong>{r.name}</strong>
-                        <span>{r.ip}</span>
-                        <Badge r={r} />
-                      </span>
-                      <span className="item-phase">
-                        P{r.phase}
-                        <ArrowUpRight size={14} />
-                      </span>
-                    </button>
+                    <RouterPhotoHover key={r.id} router={r}>
+                      <button onClick={() => open(r)} className="router-item">
+                        <span
+                          className={
+                            'router-symbol ' +
+                            (r.type === 'Outdoor' ? 'outdoor' : 'indoor')
+                          }
+                        >
+                          {r.type === 'Outdoor' ? (
+                            <Antenna size={18} />
+                          ) : r.type === 'Indoor' ? (
+                            <Building2 size={18} />
+                          ) : (
+                            <RouterIcon size={18} />
+                          )}
+                        </span>
+                        <span className="router-item-main">
+                          <strong>{r.name}</strong>
+                          <span>{r.ip}</span>
+                          <Badge r={r} />
+                        </span>
+                        <span className="item-phase">
+                          P{r.phase}
+                          <ArrowUpRight size={14} />
+                        </span>
+                      </button>
+                    </RouterPhotoHover>
                   ))
                 )}
               </aside>
@@ -597,37 +642,42 @@ export default function Home() {
                 </TableHeader>
                 <TableBody>
                   {visible.map((r) => (
-                    <TableRow key={r.id}>
-                      <TableCell>
-                        <strong>{r.name}</strong>
-                        {r.issues.length > 0 && (
-                          <span
-                            className="issue-dot"
-                            title={r.issues.join('; ')}
+                    <RouterPhotoHover key={r.id} router={r}>
+                      <TableRow tabIndex={0}>
+                        <TableCell>
+                          <strong>{r.name}</strong>
+                          {r.issues.length > 0 && (
+                            <span
+                              className="issue-dot"
+                              title={r.issues.join('; ')}
+                            >
+                              {' '}
+                              •
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>Phase {r.phase}</TableCell>
+                        <TableCell>{r.type}</TableCell>
+                        <TableCell className="mono">{r.ip}</TableCell>
+                        <TableCell>{r.cameras.length}</TableCell>
+                        <TableCell>
+                          <Badge r={r} />
+                          {r.override && (
+                            <small className="override-label">
+                              Dashboard update
+                            </small>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            className="text-button"
+                            onClick={() => open(r)}
                           >
-                            {' '}
-                            •
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>Phase {r.phase}</TableCell>
-                      <TableCell>{r.type}</TableCell>
-                      <TableCell className="mono">{r.ip}</TableCell>
-                      <TableCell>{r.cameras.length}</TableCell>
-                      <TableCell>
-                        <Badge r={r} />
-                        {r.override && (
-                          <small className="override-label">
-                            Dashboard update
-                          </small>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <button className="text-button" onClick={() => open(r)}>
-                          Details <ArrowUpRight size={14} />
-                        </button>
-                      </TableCell>
-                    </TableRow>
+                            Details <ArrowUpRight size={14} />
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    </RouterPhotoHover>
                   ))}
                 </TableBody>
               </Table>
@@ -782,6 +832,7 @@ export default function Home() {
                     </div>
                   </div>
                 )}
+                <SitePhotoGallery key={selected.id} router={selected} />
                 <h3>Commissioning & handover</h3>
                 <p className="muted">
                   Updates are saved in this dashboard. They do not write back to

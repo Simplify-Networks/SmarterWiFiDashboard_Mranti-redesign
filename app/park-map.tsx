@@ -3,11 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { Router } from '@/lib/routers';
 import { status } from '@/lib/routers';
 import 'leaflet/dist/leaflet.css';
+import { createRoot, type Root } from 'react-dom/client';
+import { SitePhotoGallery } from './site-photos';
 export default function ParkMap({
   routers,
   onSelect,
+  theme,
 }: {
   routers: Router[];
+  theme: 'light' | 'dark';
   onSelect: (r: Router) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -17,6 +21,7 @@ export default function ParkMap({
   useEffect(() => {
     let disposed = false;
     let map: import('leaflet').Map | undefined;
+    const previewRoots: Root[] = [];
     import('leaflet')
       .then((L) => {
         if (disposed || !ref.current) return;
@@ -25,7 +30,7 @@ export default function ParkMap({
           15,
         );
         L.tileLayer(
-          'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+          `https://{s}.basemaps.cartocdn.com/${theme === 'dark' ? 'dark_all' : 'light_all'}/{z}/{x}/{y}{r}.png`,
           {
             attribution:
               '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -63,6 +68,30 @@ export default function ParkMap({
             }),
             title: rr.map((x) => `${x.name} — ${status(x)}`).join(','),
           }).addTo(map!);
+          const preview = document.createElement('div');
+          let previewRoot: Root | undefined;
+          marker.bindTooltip(preview, {
+            className: 'map-photo-tooltip',
+            direction: 'auto',
+            interactive: true,
+            opacity: 1,
+          });
+          marker.on('tooltipopen', () => {
+            if (!previewRoot) {
+              previewRoot = createRoot(preview);
+              previewRoots.push(previewRoot);
+              previewRoot.render(
+                <div className="map-photo-group">
+                  {rr.map((x) => (
+                    <SitePhotoGallery key={x.id} router={x} compact />
+                  ))}
+                </div>,
+              );
+            }
+          });
+          const element = marker.getElement();
+          element?.addEventListener('focus', () => marker.openTooltip());
+          element?.addEventListener('blur', () => marker.closeTooltip());
           if (rr.length === 1) marker.on('click', () => select.current(r));
           else {
             const box = document.createElement('div');
@@ -83,9 +112,10 @@ export default function ParkMap({
       .catch(() => setError(true));
     return () => {
       disposed = true;
+      queueMicrotask(() => previewRoots.forEach((root) => root.unmount()));
       map?.remove();
     };
-  }, [routers]);
+  }, [routers, theme]);
   return (
     <>
       <div

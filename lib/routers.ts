@@ -53,6 +53,9 @@ export function csv(text: string): string[][] {
 export function parse(text: string, phase: number): Router[] {
   const rows = csv(text);
   if (rows[0]?.[0] !== 'Name') throw new Error('Unexpected sheet format');
+  const photoColumn = rows[0].findIndex(
+    (h) => h.trim().toLowerCase() === 'site photo',
+  );
   let parent: string[] = [];
   return rows.flatMap((r, i) => {
     if (i === 0 || !/^\d{1,3}(\.\d{1,3}){3}$/.test(r[5] || '')) return [];
@@ -91,7 +94,10 @@ export function parse(text: string, phase: number): Router[] {
         lng: gps ? lng : null,
         commission: r[12] === 'TRUE',
         handover: r[13] === 'TRUE',
-        photo: p[14] || '',
+        photo:
+          photoColumn < 0
+            ? ''
+            : r[photoColumn] || (continuation ? p[photoColumn] : '') || '',
         legacy: p[3] || '',
         cameras: Array.from(
           { length: Math.max(names.length, ips.length) },
