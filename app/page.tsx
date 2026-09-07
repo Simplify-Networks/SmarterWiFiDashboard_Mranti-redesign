@@ -14,7 +14,7 @@ import {
   Antenna,
   Download,
   TriangleAlert,
-  Activity,
+  CalendarDays,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -31,6 +31,8 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
+import { filterByUpdateDate, malaysiaDate } from '@/lib/report-date';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -110,6 +112,8 @@ function Badge({ r }: { r: Router }) {
 export default function Home() {
   const [routers, setRouters] = useState<Router[]>([]),
     [phase, setPhase] = useState('All phases'),
+    [dateFrom, setDateFrom] = useState(''),
+    [dateTo, setDateTo] = useState(''),
     [view, setView] = useState('map'),
     [filter, setFilter] = useState('All statuses'),
     [type, setType] = useState('All types'),
@@ -155,12 +159,17 @@ export default function Home() {
   useEffect(() => {
     refresh();
   }, []);
+  const datedRouters = useMemo(
+    () => filterByUpdateDate(routers, dateFrom, dateTo),
+    [routers, dateFrom, dateTo],
+  );
+  const dateActive = !!(dateFrom || dateTo);
   const scoped = useMemo(
     () =>
-      routers.filter(
+      datedRouters.filter(
         (r) => phase === 'All phases' || r.phase === Number(phase.slice(-1)),
       ),
-    [routers, phase],
+    [datedRouters, phase],
   );
   const visible = useMemo(
     () =>
@@ -241,7 +250,7 @@ export default function Home() {
     a.href = URL.createObjectURL(
       new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }),
     );
-    a.download = 'MRANTI-weekly-router-status.csv';
+    a.download = `MRANTI-router-status-${dateFrom || 'all'}-to-${dateTo || 'latest'}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
   }
@@ -256,16 +265,79 @@ export default function Home() {
         <div className="partner">
           Delivered by{' '}
           <a href="https://simplify.network/" target="_blank" rel="noreferrer">
-            simplify<span>↗</span>
+            <img
+              className="simplify-logo"
+              src="/simplify-wordmark.png"
+              alt="Simplify"
+            />
           </a>
         </div>
       </header>
       <main>
+        <div className="report-toolbar">
+          <div className="eyebrow">
+            <span /> WEEKLY PROJECT REPORT
+          </div>
+          <time
+            className="today-date"
+            dateTime={malaysiaDate(new Date().toISOString())}
+          >
+            <CalendarDays size={15} />
+            {new Date().toLocaleDateString('en-MY', {
+              timeZone: 'Asia/Kuala_Lumpur',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </time>
+          <div
+            className="date-filters"
+            role="group"
+            aria-label="Filter by dashboard status update date"
+          >
+            <span className="date-filter-title">Status updated</span>
+            <label>
+              From
+              <Input
+                type="date"
+                aria-label="Status updated from date"
+                value={dateFrom}
+                max={dateTo || undefined}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+            </label>
+            <label>
+              To
+              <Input
+                type="date"
+                aria-label="Status updated to date"
+                value={dateTo}
+                min={dateFrom || undefined}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </label>
+            {dateActive && (
+              <button
+                className="text-button"
+                onClick={() => {
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+              >
+                All dates
+              </button>
+            )}
+          </div>
+        </div>
+        {dateActive && (
+          <p className="date-filter-note" role="status">
+            Showing routers whose latest dashboard status update falls within
+            the selected dates (MYT). Undated sheet records are excluded.
+            Statuses shown are current, not historical snapshots.
+          </p>
+        )}
         <div className="heading">
           <div>
-            <div className="eyebrow">
-              <span /> WEEKLY PROJECT REPORT
-            </div>
             <h1>
               5G infrastructure <span>rollout</span>
             </h1>
@@ -325,10 +397,11 @@ export default function Home() {
         <section className="metrics">
           <article>
             <div className="metric-label">
-              Routers in scope <RouterIcon />
+              {dateActive ? 'Routers matching dates' : 'Routers in scope'}{' '}
+              <RouterIcon />
             </div>
             <strong>
-              {scoped.length || '—'}
+              {scoped.length}
               <small>
                 / {phase === 'All phases' ? 48 : phase === 'Phase 1' ? 24 : 12}
               </small>
@@ -376,7 +449,7 @@ export default function Home() {
         </section>
         <section className="phase-cards">
           {[1, 2, 3].map((p) => {
-            const rr = routers.filter((r) => r.phase === p),
+            const rr = datedRouters.filter((r) => r.phase === p),
               c = rr.filter((r) => r.commission).length,
               h = rr.filter((r) => r.handover).length;
             return (
