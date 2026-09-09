@@ -840,8 +840,9 @@ export default function Home() {
         <details className="source-notes">
           <summary>Data notes & attribution</summary>
           <p>
-            Phase 1 follows the first sheet tab; Phase 2 combines the second and
-            third sheet tabs. Each router IP is one record. Blank continuation rows inherit only their
+            Phase 1 includes the first sheet tab plus Indoor Petronas 1 and Outdoor
+            T17. Phase 2 contains the remaining routers from the second and third
+            sheet tabs. Each router IP is one record. Blank continuation rows inherit only their
             parent site details; missing GPS on a named router is not guessed.
             CCTV totals count individual entries, which may differ from summary
             cells. Status indicates project milestones, not live network uptime.

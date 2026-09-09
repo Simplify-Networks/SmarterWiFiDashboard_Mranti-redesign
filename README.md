@@ -6,7 +6,7 @@ Weekly commissioning and handover tracker for MRANTI Park's two-phase
 - Live (GitHub Pages): https://simplify-networks.github.io/SmarterWiFiDashboard_Mranti-redesign/
 - API + database (Cloudflare Worker): https://mranti-5g-rollout.mranti.workers.dev (also serves the full page)
 - Source data: Google Sheet (three phase tabs), with a CSV snapshot fallback in `public/data/`
-- Phase 1 uses the first source tab (24 routers); Phase 2 combines the second and third tabs (24 routers). Original router IDs are retained so saved updates and history remain linked.
+- Phase 1 includes the first source tab plus Indoor Petronas 1 and Outdoor T17 (26 routers); Phase 2 includes the remaining routers from the second and third tabs (22 routers). Original router IDs are retained so saved updates and history remain linked.
 - Status updates and history are stored in Cloudflare D1
 
 ## Develop

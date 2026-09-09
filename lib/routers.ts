@@ -34,9 +34,18 @@ export type HistoryEntry = {
 export const SHEET =
   'https://docs.google.com/spreadsheets/d/1fNmXMehYd2Y6a46WbISAThfOHLIvTKf0ytYv9r9UFfM';
 export const PHASES = [1, 2] as const;
+// Explicit assignments retain source IDs so updates and history stay linked.
+const PHASE_ONE_ROUTER_IDS = new Set([
+  'p2-10.100.23.155', // Indoor Petronas 1
+  'p2-192.168.250.127', // Outdoor T17
+]);
+function dashboardPhase(id: string, sourcePhase: number): number {
+  if (PHASE_ONE_ROUTER_IDS.has(id)) return 1;
+  return sourcePhase === 3 ? 2 : sourcePhase;
+}
 export function mergePhases(r: Router): Router {
   const sourcePhase = r.sourcePhase ?? r.phase;
-  return { ...r, sourcePhase, phase: sourcePhase === 3 ? 2 : sourcePhase };
+  return { ...r, sourcePhase, phase: dashboardPhase(r.id, sourcePhase) };
 }
 
 // Keep the original sheet tabs and router IDs for saved statuses and history.
@@ -160,7 +169,7 @@ export function parse(text: string, phase: number): Router[] {
     return [
       {
         id: `p${phase}-${cell(r, c.ip)}`,
-        phase: phase === 3 ? 2 : phase,
+        phase: dashboardPhase(`p${phase}-${cell(r, c.ip)}`, phase),
         sourcePhase: phase,
         row: i + 1,
         name: cell(p, c.name),
