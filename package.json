@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:setup": "node scripts/db-setup.mjs",
     "deploy": "node scripts/deploy.mjs",
-    "snapshot": "node scripts/snapshot.mjs"
+    "snapshot": "node scripts/snapshot.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

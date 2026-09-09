@@ -26,6 +26,7 @@ if (process.argv[1] && process.argv[1].endsWith('deploy.mjs')) {
     );
     process.exit(1);
   }
+  run('npx tsc --noEmit'); // build does not type-check; a bad import would 500 at runtime
   run('pnpm build');
   const file = 'dist/server/wrangler.json';
   const cfg = JSON.parse(readFileSync(file, 'utf8'));
