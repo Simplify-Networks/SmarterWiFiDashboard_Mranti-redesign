@@ -15,7 +15,9 @@
     "db:setup": "node scripts/db-setup.mjs",
     "deploy": "node scripts/deploy.mjs",
     "snapshot": "node scripts/snapshot.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "pages:build": "vite build --config vite.pages.config.ts",
+    "pages:preview": "vite preview --config vite.pages.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

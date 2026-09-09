@@ -1,7 +1,8 @@
+import { cors, preflight } from '@/lib/cors';
 import { getDb } from '@/db';
 import { history } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
-export async function GET(request: Request) {
+export const GET = cors(async (request: Request) => {
   const url = new URL(request.url);
   const router = url.searchParams.get('router');
   const limit = Math.min(Number(url.searchParams.get('limit')) || 50, 200);
@@ -23,4 +24,5 @@ export async function GET(request: Request) {
       { status: 503 },
     );
   }
-}
+});
+export const OPTIONS = preflight;

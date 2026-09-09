@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { SNAPSHOT_DATE } from '@/lib/snapshot-date';
+import { api, asset } from '@/lib/paths';
 import {
   Router as RouterIcon,
   MapPinned,
@@ -178,7 +179,7 @@ export default function Home() {
   }, []);
   async function loadActivity() {
     try {
-      const res = await fetch('/api/history?limit=30', { cache: 'no-store' });
+      const res = await fetch(api('/api/history?limit=30'), { cache: 'no-store' });
       if (res.ok)
         setActivity(
           ((await res.json()) as { entries: HistoryEntry[] }).entries,
@@ -190,7 +191,7 @@ export default function Home() {
     void loadActivity();
     try {
       const res = await fetch(
-        fresh ? '/api/routers?fresh=1' : '/api/routers',
+        api(fresh ? '/api/routers?fresh=1' : '/api/routers'),
         { cache: 'no-store' },
       );
       if (!res.ok) throw Error();
@@ -207,7 +208,7 @@ export default function Home() {
     } catch {
       const all = await Promise.all(
         [1, 2, 3].map(async (p) =>
-          parse(await (await fetch(`/data/phase${p}.csv`)).text(), p),
+          parse(await (await fetch(asset(`/data/phase${p}.csv`))).text(), p),
         ),
       );
       setRouters(all.flat());
@@ -259,7 +260,7 @@ export default function Home() {
     setHandover(r.handover);
     setMessage('');
     setRouterHistory([]);
-    fetch(`/api/history?router=${encodeURIComponent(r.id)}&limit=20`, {
+    fetch(api(`/api/history?router=${encodeURIComponent(r.id)}&limit=20`), {
       cache: 'no-store',
     })
       .then((res) => (res.ok ? res.json() : { entries: [] }))
@@ -272,7 +273,7 @@ export default function Home() {
     if (!selected) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/status', {
+      const res = await fetch(api('/api/status'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -345,7 +346,7 @@ export default function Home() {
     <div className="dashboard">
       <header className="topbar">
         <div className="brand">
-          <img src="/mranti-logo.png" alt="MRANTI" />
+          <img src={asset('/mranti-logo.png')} alt="MRANTI" />
           <span className="brand-divider" />
           <span className="project-tag">PARK INFRASTRUCTURE</span>
         </div>
@@ -372,7 +373,7 @@ export default function Home() {
             >
               <img
                 className="simplify-logo"
-                src="/simplify-wordmark.png"
+                src={asset('/simplify-wordmark.png')}
                 alt="Simplify"
               />
             </a>

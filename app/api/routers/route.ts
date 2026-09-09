@@ -1,7 +1,8 @@
+import { cors, preflight } from '@/lib/cors';
 import { getSourceCached } from '@/lib/source';
 import { getDb } from '@/db';
 import { statuses } from '@/db/schema';
-export async function GET(req: Request) {
+export const GET = cors(async (req: Request) => {
   const url = new URL(req.url);
   const data = await getSourceCached(
     url.searchParams.get('fresh') === '1' ? 0 : 60000,
@@ -46,4 +47,5 @@ export async function GET(req: Request) {
       { headers: { 'Cache-Control': 'no-store' } },
     );
   }
-}
+});
+export const OPTIONS = preflight;

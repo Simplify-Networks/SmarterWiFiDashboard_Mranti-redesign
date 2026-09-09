@@ -1,3 +1,4 @@
+import { cors, preflight } from '@/lib/cors';
 import { getSourceCached } from '@/lib/source';
 import {
   safePhotoLink,
@@ -46,7 +47,7 @@ async function resolve(link: string): Promise<SitePhotos> {
     };
   }
 }
-export async function GET(request: Request) {
+export const GET = cors(async (request: Request) => {
   const id = new URL(request.url).searchParams.get('router');
   if (!id || id.length > 120)
     return Response.json({ error: 'Invalid router' }, { status: 400 });
@@ -70,4 +71,5 @@ export async function GET(request: Request) {
   return Response.json(await entry.promise, {
     headers: { 'Cache-Control': 'private, max-age=60' },
   });
-}
+});
+export const OPTIONS = preflight;

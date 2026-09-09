@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { ImageIcon, ExternalLink } from 'lucide-react';
 import type { Router } from '@/lib/routers';
 import { safePhotoLink, type SitePhotos } from '@/lib/site-photos';
+import { api } from '@/lib/paths';
 import {
   HoverCard,
   HoverCardTrigger,
@@ -15,7 +16,7 @@ function load(r: Router) {
   if (!entry || Date.now() - entry.at > 60000) {
     entry = {
       at: Date.now(),
-      promise: fetch(`/api/photos?router=${encodeURIComponent(r.id)}`).then(
+      promise: fetch(api(`/api/photos?router=${encodeURIComponent(r.id)}`)).then(
         async (res) => {
           if (!res.ok) throw Error();
           return (await res.json()) as SitePhotos;

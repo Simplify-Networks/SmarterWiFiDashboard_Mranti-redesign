@@ -1,10 +1,10 @@
+import { cors, preflight, isTrustedOrigin } from '@/lib/cors';
 import { getDb } from '@/db';
 import { statuses, history } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getSourceCached } from '@/lib/source';
-export async function POST(req: Request) {
-  const origin = req.headers.get('origin');
-  if (origin && origin !== new URL(req.url).origin)
+export const POST = cors(async (req: Request) => {
+  if (!isTrustedOrigin(req))
     return Response.json({ error: 'Origin not allowed' }, { status: 403 });
   let b: {
     id: string;
@@ -91,4 +91,5 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
-}
+});
+export const OPTIONS = preflight;
