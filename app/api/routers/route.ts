@@ -21,6 +21,8 @@ export async function GET(req: Request) {
                 handover: s.handover,
                 updatedAt: s.updatedAt,
                 updatedBy: s.updatedBy || undefined,
+                commissionedAt: s.commissionedAt,
+                handedOverAt: s.handedOverAt,
                 override: true,
               }
             : r;

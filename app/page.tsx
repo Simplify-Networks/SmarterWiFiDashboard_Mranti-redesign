@@ -36,7 +36,12 @@ import {
 } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { filterByUpdateDate, malaysiaDate } from '@/lib/report-date';
+import {
+  filterByMilestoneDate,
+  commissionedIn,
+  handedOverIn,
+  malaysiaDate,
+} from '@/lib/report-date';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -205,7 +210,7 @@ export default function Home() {
         ),
       );
       setRouters(all.flat());
-      setSource('Source snapshot · 8 Sep 2026');
+      setSource(`Source snapshot · ${SNAPSHOT_DATE}`);
       setMessage(
         'Live refresh unavailable. Showing the supplied sheet snapshot. Saved dashboard updates could not be loaded.',
       );
@@ -217,7 +222,7 @@ export default function Home() {
     void refresh();
   }, []);
   const datedRouters = useMemo(
-    () => filterByUpdateDate(routers, dateFrom, dateTo),
+    () => filterByMilestoneDate(routers, dateFrom, dateTo),
     [routers, dateFrom, dateTo],
   );
   const dateActive = !!(dateFrom || dateTo);
@@ -240,8 +245,12 @@ export default function Home() {
       ),
     [scoped, filter, type, search],
   );
-  const done = scoped.filter((r) => r.commission).length,
-    handed = scoped.filter((r) => r.handover).length,
+  const isDone = (r: Router) =>
+      dateActive ? commissionedIn(r, dateFrom, dateTo) : r.commission,
+    isHanded = (r: Router) =>
+      dateActive ? handedOverIn(r, dateFrom, dateTo) : r.handover;
+  const done = scoped.filter(isDone).length,
+    handed = scoped.filter(isHanded).length,
     cameras = scoped.reduce((n, r) => n + r.cameras.length, 0);
   function open(r: Router) {
     setSelected(r);
@@ -299,7 +308,9 @@ export default function Home() {
         'Commissioned',
         'Handed over',
         'CCTVs',
-        'Updated',
+        'Commissioned on',
+        'Handed over on',
+        'Last update',
         'Issues',
       ],
       ...visible.map((r) => [
@@ -310,6 +321,8 @@ export default function Home() {
         r.commission,
         r.handover,
         r.cameras.length,
+        r.commissionedAt ? malaysiaDate(r.commissionedAt) : r.commission ? 'Per source sheet' : '',
+        r.handedOverAt ? malaysiaDate(r.handedOverAt) : r.handover ? 'Per source sheet' : '',
         r.updatedAt || 'Source sheet',
         r.issues.join('; '),
       ]),
@@ -423,9 +436,9 @@ export default function Home() {
         </div>
         {dateActive && (
           <p className="date-filter-note" role="status">
-            Showing routers whose latest dashboard status update falls within
-            the selected dates (MYT). Undated sheet records are excluded.
-            Statuses shown are current, not historical snapshots.
+            Showing routers commissioned or handed over within the selected
+            dates (MYT). Counts show milestones reached in that range. Sheet
+            records without a dashboard date are excluded.
           </p>
         )}
         <div className="heading">
@@ -542,8 +555,8 @@ export default function Home() {
         <section className="phase-cards">
           {[1, 2, 3].map((p) => {
             const rr = datedRouters.filter((r) => r.phase === p),
-              c = rr.filter((r) => r.commission).length,
-              h = rr.filter((r) => r.handover).length;
+              c = rr.filter(isDone).length,
+              h = rr.filter(isHanded).length;
             return (
               <button
                 key={p}
@@ -811,7 +824,7 @@ export default function Home() {
           <span>
             {last
               ? `Retrieved ${fmt(last)} MYT`
-              : 'Source snapshot: 8 Sep 2026'}
+              : `Source snapshot: ${SNAPSHOT_DATE}`}
           </span>
         </footer>
         <details className="source-notes">
@@ -952,6 +965,10 @@ export default function Home() {
                 {selected.updatedAt && (
                   <p className="muted">
                     Last dashboard update: {fmt(selected.updatedAt)} MYT
+                    {selected.commissionedAt &&
+                      ` · Commissioned ${fmt(selected.commissionedAt)}`}
+                    {selected.handedOverAt &&
+                      ` · Handed over ${fmt(selected.handedOverAt)}`}
                   </p>
                 )}
                 {routerHistory.length > 0 && (

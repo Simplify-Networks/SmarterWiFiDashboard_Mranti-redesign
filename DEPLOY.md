@@ -34,3 +34,25 @@ It is idempotent and only needs re-running if the schema changes.
   `/api/history?limit=30` feeds the "Recent updates" panel.
 - Google Sheet reads are cached for 60 s; the refresh button forces a fresh
   fetch with `/api/routers?fresh=1`.
+
+## Milestone dates
+
+`router_status` keeps `commissioned_at` and `handed_over_at` separately.
+Each is set the first time its box is ticked, kept on later saves, and
+cleared when the box is unticked. The date filter at the top of the page
+and the CSV export use these two dates, not the last-update time.
+
+## Sheet columns
+
+Columns are located by header name (`Name`, `IP`, `Latitude`,
+`Commission?`, `Site Photo` ...), so columns may be inserted or reordered
+in the sheet. Renaming a header will break parsing; the app then falls
+back to the snapshot and shows a warning.
+
+## Refreshing the offline snapshot
+
+```bash
+pnpm snapshot   # downloads the three tabs into public/data and stamps the date
+```
+
+Run it before `pnpm run deploy` so the fallback stays close to the sheet.

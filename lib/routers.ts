@@ -18,6 +18,8 @@ export type Router = {
   override?: boolean;
   updatedAt?: string;
   updatedBy?: string;
+  commissionedAt?: string | null;
+  handedOverAt?: string | null;
 };
 export type HistoryEntry = {
   id: string;
@@ -60,61 +62,115 @@ export function csv(text: string): string[][] {
   }
   return rows;
 }
+/** Column lookup by header name, so inserting or reordering sheet columns does not break parsing. */
+export type Columns = {
+  name: number;
+  type: number;
+  connectTo: number;
+  legacy: number;
+  ip: number;
+  subnet: number;
+  cctvNames: number;
+  cctvIps: number;
+  cctvSubnet: number;
+  lat: number;
+  lng: number;
+  commission: number;
+  handover: number;
+  photo: number;
+};
+const norm = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+export function columns(header: string[]): Columns {
+  const h = header.map(norm);
+  const find = (test: (x: string) => boolean, skip = 0) => {
+    let n = 0;
+    for (let i = 0; i < h.length; i++)
+      if (test(h[i]) && n++ === skip) return i;
+    return -1;
+  };
+  const c: Columns = {
+    name: find((x) => x === 'name'),
+    type: find((x) => x === 'type'),
+    connectTo: find((x) => x.startsWith('connect')),
+    legacy: find((x) => x.startsWith('4g router')),
+    ip: find((x) => x.startsWith('ip')),
+    subnet: find((x) => x.startsWith('subnet')),
+    cctvNames: find((x) => x.startsWith('cctv')),
+    cctvIps: find((x) => x.startsWith('ip'), 1),
+    cctvSubnet: find((x) => x.startsWith('subnet'), 1),
+    lat: find((x) => x.startsWith('lat')),
+    lng: find((x) => x.startsWith('lon')),
+    commission: find((x) => x.startsWith('commission')),
+    handover: find((x) => x.startsWith('handover')),
+    photo: find((x) => x.includes('photo')),
+  };
+  const required: (keyof Columns)[] = [
+    'name',
+    'ip',
+    'lat',
+    'lng',
+    'commission',
+    'handover',
+  ];
+  const missing = required.filter((k) => c[k] < 0);
+  if (missing.length)
+    throw new Error(`Unexpected sheet format: missing ${missing.join(', ')}`);
+  return c;
+}
+const cell = (r: string[], i: number) => (i < 0 ? '' : r[i] || '');
 export function parse(text: string, phase: number): Router[] {
   const rows = csv(text);
-  if (rows[0]?.[0] !== 'Name') throw new Error('Unexpected sheet format');
-  const photoColumn = rows[0].findIndex(
-    (h) => h.trim().toLowerCase() === 'site photo',
-  );
+  if (!rows.length) throw new Error('Unexpected sheet format');
+  const c = columns(rows[0]);
   let parent: string[] = [];
   return rows.flatMap((r, i) => {
-    if (i === 0 || !/^\d{1,3}(\.\d{1,3}){3}$/.test(r[5] || '')) return [];
-    const continuation = !r[0];
+    if (i === 0 || !/^\d{1,3}(\.\d{1,3}){3}$/.test(cell(r, c.ip))) return [];
+    const continuation = !cell(r, c.name);
     if (!continuation) parent = r;
     const p = continuation ? parent : r;
+    const inherit = (col: number) =>
+      cell(r, col) || (continuation ? cell(p, col) : '');
     const issues: string[] = [];
-    const type = r[1] || (continuation ? p[1] : '') || 'Unspecified';
+    const type = inherit(c.type) || 'Unspecified';
     if (type === 'Unspecified') issues.push('Router type missing in source');
-    const lat = Number(r[10] || (continuation ? p[10] : ''));
-    const lng = Number(r[11] || (continuation ? p[11] : ''));
+    const lat = Number(inherit(c.lat));
+    const lng = Number(inherit(c.lng));
     const gps = !!lat && !!lng && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
     if (!gps) issues.push('GPS missing in source');
-    const names = (r[7] || '')
+    const names = cell(r, c.cctvNames)
       .split('\n')
       .map((x) => x.trim())
       .filter(Boolean);
-    const ips = (r[8] || '')
+    const ips = cell(r, c.cctvIps)
       .split('\n')
       .map((x) => x.trim())
       .filter(Boolean);
     if (names.length !== ips.length)
       issues.push('CCTV name / IP count mismatch');
-    if (p[3]?.includes('found')) issues.push(p[3]);
+    const legacy = cell(p, c.legacy);
+    if (legacy.includes('found')) issues.push(legacy);
     return [
       {
-        id: `p${phase}-${r[5]}`,
+        id: `p${phase}-${cell(r, c.ip)}`,
         phase,
         row: i + 1,
-        name: p[0],
+        name: cell(p, c.name),
         type,
-        connectTo: p[2] || '',
-        ip: r[5],
-        subnet: r[6] || '',
+        connectTo: cell(p, c.connectTo),
+        ip: cell(r, c.ip),
+        subnet: cell(r, c.subnet),
         lat: gps ? lat : null,
         lng: gps ? lng : null,
-        commission: r[12] === 'TRUE',
-        handover: r[13] === 'TRUE',
-        photo:
-          photoColumn < 0
-            ? ''
-            : r[photoColumn] || (continuation ? p[photoColumn] : '') || '',
-        legacy: p[3] || '',
+        commission: cell(r, c.commission) === 'TRUE',
+        handover: cell(r, c.handover) === 'TRUE',
+        photo: inherit(c.photo),
+        legacy,
         cameras: Array.from(
           { length: Math.max(names.length, ips.length) },
           (_, j) => ({
             name: names[j] || 'Unnamed CCTV',
             ip: ips[j] || 'Not supplied',
-            subnet: r[9] || '',
+            subnet: cell(r, c.cctvSubnet),
           }),
         ),
         issues,

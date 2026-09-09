@@ -1675,3 +1675,22 @@ footer {
 .dark .who-row {
   color: #8a9bb0;
 }
+
+/* Shimmer behind site photos while Google Drive thumbnails load */
+@keyframes photo-shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.photo-grid img {
+  background: linear-gradient(90deg, #e6edf5 25%, #f4f7fb 50%, #e6edf5 75%);
+  background-size: 200% 100%;
+  animation: photo-shimmer 1.4s ease-in-out infinite;
+}
+.dark .photo-grid img {
+  background: linear-gradient(90deg, #1b2636 25%, #27364a 50%, #1b2636 75%);
+  background-size: 200% 100%;
+}

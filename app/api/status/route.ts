@@ -44,21 +44,32 @@ export async function POST(req: Request) {
       at = new Date().toISOString();
     const c = b.reset ? r.commission : b.commission,
       h = b.reset ? r.handover : b.handover;
+    // Keep the first time each milestone was reached; clear it when unticked.
+    const prev = b.reset
+      ? undefined
+      : (
+          await db
+            .select()
+            .from(statuses)
+            .where(eq(statuses.id, b.id))
+            .limit(1)
+        )[0];
+    const commissionedAt = c ? prev?.commissionedAt || at : null;
+    const handedOverAt = h ? prev?.handedOverAt || at : null;
+    const row = {
+      commission: c,
+      handover: h,
+      updatedAt: at,
+      updatedBy: by,
+      commissionedAt,
+      handedOverAt,
+    };
     const mutation = b.reset
       ? db.delete(statuses).where(eq(statuses.id, b.id))
       : db
           .insert(statuses)
-          .values({
-            id: b.id,
-            commission: c,
-            handover: h,
-            updatedAt: at,
-            updatedBy: by,
-          })
-          .onConflictDoUpdate({
-            target: statuses.id,
-            set: { commission: c, handover: h, updatedAt: at, updatedBy: by },
-          });
+          .values({ id: b.id, ...row })
+          .onConflictDoUpdate({ target: statuses.id, set: row });
     await db.batch([
       mutation,
       db

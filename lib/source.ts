@@ -2,6 +2,7 @@ import p1 from '../public/data/phase1.csv?raw';
 import p2 from '../public/data/phase2.csv?raw';
 import p3 from '../public/data/phase3.csv?raw';
 import { parse, SHEET, GIDS } from './routers';
+import { SNAPSHOT_DATE } from './snapshot-date';
 export const snapshot = [parse(p1, 1), parse(p2, 2), parse(p3, 3)].flat();
 export async function getSource() {
   try {
@@ -24,9 +25,9 @@ export async function getSource() {
   } catch {
     return {
       routers: snapshot,
-      source: 'Source snapshot · 8 Sep 2026',
+      source: `Source snapshot · ${SNAPSHOT_DATE}`,
       warning:
-        'Google Sheets could not be refreshed. Showing the 8 Sep 2026 source snapshot with saved dashboard updates.',
+        `Google Sheets could not be refreshed. Showing the ${SNAPSHOT_DATE} source snapshot with saved dashboard updates.`,
     };
   }
 }
