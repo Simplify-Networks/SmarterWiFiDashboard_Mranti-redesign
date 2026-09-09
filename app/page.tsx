@@ -60,6 +60,7 @@ import {
   SHEET,
   GIDS,
   PHASES,
+  deploymentCategory,
   mergePhases,
   parse,
   status,
@@ -138,7 +139,7 @@ function Badge({ r }: { r: Router }) {
 }
 export default function Home() {
   const [routers, setRouters] = useState<Router[]>([]),
-    [phase, setPhase] = useState('All phases'),
+    [phase, setPhase] = useState('all'),
     [theme, setTheme] = useState<'light' | 'dark'>('light'),
     [dateFrom, setDateFrom] = useState(''),
     [dateTo, setDateTo] = useState(''),
@@ -233,7 +234,7 @@ export default function Home() {
   const scoped = useMemo(
     () =>
       datedRouters.filter(
-        (r) => phase === 'All phases' || r.phase === Number(phase.slice(-1)),
+        (r) => phase === 'all' || r.phase === Number(phase),
       ),
     [datedRouters, phase],
   );
@@ -306,7 +307,7 @@ export default function Home() {
     const lines = [
       [
         'Router',
-        'Phase',
+        'Deployment Category',
         'Type',
         'IP',
         'Commissioned',
@@ -319,7 +320,7 @@ export default function Home() {
       ],
       ...visible.map((r) => [
         r.name,
-        r.phase,
+        deploymentCategory(r.phase),
         r.type,
         r.ip,
         r.commission,
@@ -466,9 +467,9 @@ export default function Home() {
         <div className="phase-row">
           <Tabs value={phase} onValueChange={(v) => setPhase(String(v))}>
             <TabsList className="phase-tabs">
-              {['All phases', ...PHASES.map((p) => `Phase ${p}`)].map((p, i) => (
+              {['all', ...PHASES.map(String)].map((p, i) => (
                 <TabsTrigger value={p} key={p}>
-                  {p}
+                  {p === 'all' ? 'All Sites' : deploymentCategory(Number(p))}
                   <span className="count">
                     {i === 0
                       ? routers.length
@@ -516,7 +517,7 @@ export default function Home() {
               <small>
                 /{' '}
                 {routers.filter(
-                  (r) => phase === 'All phases' || r.phase === Number(phase.slice(-1)),
+                  (r) => phase === 'all' || r.phase === Number(phase),
                 ).length}
               </small>
             </strong>
@@ -569,12 +570,11 @@ export default function Home() {
             return (
               <button
                 key={p}
-                onClick={() => setPhase(`Phase ${p}`)}
-                className={phase === `Phase ${p}` ? 'active' : ''}
+                onClick={() => setPhase(String(p))}
+                className={phase === String(p) ? 'active' : ''}
               >
                 <div>
-                  <span className="phase-number">0{p}</span>
-                  <strong>Phase {p}</strong>
+                  <strong>{deploymentCategory(p)}</strong>
                   <span className="phase-total">
                     {routers.filter((r) => r.phase === p).length} routers{}
                     <ArrowUpRight size={15} />
@@ -600,9 +600,9 @@ export default function Home() {
               <h2>Network deployment</h2>
               <p>
                 {visible.length} routers
-                {phase !== 'All phases'
-                  ? ` · ${phase}`
-                  : ' across two phases'}{' '}
+                {phase !== 'all'
+                  ? ` · ${deploymentCategory(Number(phase))}`
+                  : ' across all sites'}{' '}
                 · Select a router to inspect or update
               </p>
             </div>
@@ -680,8 +680,8 @@ export default function Home() {
                           <span>{r.ip}</span>
                           <Badge r={r} />
                         </span>
-                        <span className="item-phase">
-                          P{r.phase}
+                        <span className="item-phase" title={deploymentCategory(r.phase)}>
+                          {r.phase === 1 ? 'Priority' : 'Standard'}
                           <ArrowUpRight size={14} />
                         </span>
                       </button>
@@ -697,7 +697,7 @@ export default function Home() {
                   <TableRow>
                     {[
                       'Router / location',
-                      'Phase',
+                      'Deployment Category',
                       'Type',
                       'Router IP',
                       'CCTVs',
@@ -724,7 +724,7 @@ export default function Home() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>Phase {r.phase}</TableCell>
+                        <TableCell>{deploymentCategory(r.phase)}</TableCell>
                         <TableCell>{r.type}</TableCell>
                         <TableCell className="mono">{r.ip}</TableCell>
                         <TableCell>{r.cameras.length}</TableCell>
@@ -840,8 +840,8 @@ export default function Home() {
         <details className="source-notes">
           <summary>Data notes & attribution</summary>
           <p>
-            Phase 1 includes the first sheet tab plus Indoor Petronas 1 and Outdoor
-            T17. Phase 2 contains the remaining routers from the second and third
+            Priority Deployment includes the first sheet tab plus Indoor Petronas 1 and Outdoor
+            T17. Standard Deployment contains the remaining routers from the second and third
             sheet tabs. Each router IP is one record. Blank continuation rows inherit only their
             parent site details; missing GPS on a named router is not guessed.
             CCTV totals count individual entries, which may differ from summary
@@ -873,7 +873,7 @@ export default function Home() {
             <>
               <SheetHeader>
                 <div className="eyebrow">
-                  PHASE {selected.phase} · {selected.type.toUpperCase()}
+                  {deploymentCategory(selected.phase).toUpperCase()} · {selected.type.toUpperCase()}
                 </div>
                 <SheetTitle className="detail-title">
                   {selected.name}

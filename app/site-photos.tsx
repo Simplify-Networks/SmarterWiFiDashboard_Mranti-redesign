@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, type ReactElement } from 'react';
 import { ImageIcon, ExternalLink } from 'lucide-react';
-import type { Router } from '@/lib/routers';
+import { deploymentCategory, type Router } from '@/lib/routers';
 import { safePhotoLink, type SitePhotos } from '@/lib/site-photos';
 import { api } from '@/lib/paths';
 import {
@@ -65,7 +65,7 @@ export function SitePhotoGallery({
       <div className="photo-heading">
         <ImageIcon size={16} />
         <strong>{compact ? router.name : 'Site photos'}</strong>
-        {compact && <span>Phase {router.phase}</span>}
+        {compact && <span>{deploymentCategory(router.phase)}</span>}
       </div>
       {!link ? (
         <div className="photo-placeholder">

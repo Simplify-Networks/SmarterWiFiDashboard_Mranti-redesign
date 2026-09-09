@@ -34,6 +34,9 @@ export type HistoryEntry = {
 export const SHEET =
   'https://docs.google.com/spreadsheets/d/1fNmXMehYd2Y6a46WbISAThfOHLIvTKf0ytYv9r9UFfM';
 export const PHASES = [1, 2] as const;
+export function deploymentCategory(phase: number): string {
+  return phase === 1 ? 'Priority Deployment' : 'Standard Deployment';
+}
 // Explicit assignments retain source IDs so updates and history stay linked.
 const PHASE_ONE_ROUTER_IDS = new Set([
   'p2-10.100.23.155', // Indoor Petronas 1

@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'MRANTI | 5G Infrastructure Rollout',
   description:
-    'Weekly commissioning and handover dashboard for MRANTI Park’s two-phase 5G router upgrade, delivered by Simplify.',
+    'Weekly commissioning and handover dashboard for MRANTI Park’s 5G router upgrade, delivered by Simplify.',
 };
 export default function RootLayout({
   children,

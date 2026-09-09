@@ -329,6 +329,7 @@ h1 span {
 }
 .phase-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
@@ -337,7 +338,9 @@ h1 span {
 }
 .phase-tabs {
   background: none !important;
-  height: 42px !important;
+  min-height: 42px;
+  height: auto !important;
+  flex-wrap: wrap;
   gap: 9px;
   padding: 0 !important;
 }
