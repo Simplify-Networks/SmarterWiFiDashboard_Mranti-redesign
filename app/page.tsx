@@ -16,7 +16,6 @@ import {
   TriangleAlert,
   CalendarDays,
   History,
-  UserRound,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -146,7 +145,6 @@ export default function Home() {
     [commission, setCommission] = useState(false),
     [handover, setHandover] = useState(false),
     [saving, setSaving] = useState(false),
-    [who, setWho] = useState(''),
     [routerHistory, setRouterHistory] = useState<HistoryEntry[]>([]),
     [activity, setActivity] = useState<HistoryEntry[]>([]);
   function changeTheme(next: 'light' | 'dark') {
@@ -161,7 +159,6 @@ export default function Home() {
     let saved: string | null = null;
     try {
       saved = localStorage.getItem('mranti-theme');
-      setWho(localStorage.getItem('mranti-operator') || '');
     } catch {}
     const next =
       saved === 'dark' ||
@@ -261,12 +258,6 @@ export default function Home() {
       )
       .catch(() => {});
   }
-  function changeWho(v: string) {
-    setWho(v);
-    try {
-      localStorage.setItem('mranti-operator', v.trim());
-    } catch {}
-  }
   async function save(reset = false) {
     if (!selected) return;
     setSaving(true);
@@ -279,7 +270,6 @@ export default function Home() {
           commission,
           handover,
           reset,
-          by: who.trim(),
         }),
       });
       if (!res.ok)
@@ -310,7 +300,6 @@ export default function Home() {
         'Handed over',
         'CCTVs',
         'Updated',
-        'Updated by',
         'Issues',
       ],
       ...visible.map((r) => [
@@ -322,7 +311,6 @@ export default function Home() {
         r.handover,
         r.cameras.length,
         r.updatedAt || 'Source sheet',
-        r.updatedBy || '',
         r.issues.join('; '),
       ]),
     ];
@@ -799,7 +787,6 @@ export default function Home() {
                       {r ? r.name : h.routerId}
                     </button>
                     <span>{describe(h)}</span>
-                    <span className="history-who">{h.by || 'Unnamed'}</span>
                   </li>
                 );
               })}
@@ -944,16 +931,6 @@ export default function Home() {
                   />
                   Handover completed
                 </label>
-                <div className="who-row">
-                  <UserRound size={16} />
-                  <Input
-                    value={who}
-                    maxLength={60}
-                    placeholder="Your name (recorded with the update)"
-                    aria-label="Your name"
-                    onChange={(e) => changeWho(e.target.value)}
-                  />
-                </div>
                 <div className="save-row">
                   <button
                     className="button primary"
@@ -975,7 +952,6 @@ export default function Home() {
                 {selected.updatedAt && (
                   <p className="muted">
                     Last dashboard update: {fmt(selected.updatedAt)} MYT
-                    {selected.updatedBy ? ` by ${selected.updatedBy}` : ''}
                   </p>
                 )}
                 {routerHistory.length > 0 && (
@@ -989,9 +965,6 @@ export default function Home() {
                         <li key={h.id}>
                           <span className="history-when">{fmt(h.at)}</span>
                           <span>{describe(h)}</span>
-                          <span className="history-who">
-                            {h.by || 'Unnamed'}
-                          </span>
                         </li>
                       ))}
                     </ul>
