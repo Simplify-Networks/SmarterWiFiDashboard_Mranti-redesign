@@ -59,6 +59,8 @@ import {
   HistoryEntry,
   SHEET,
   GIDS,
+  PHASES,
+  mergePhases,
   parse,
   status,
 } from '@/lib/routers';
@@ -201,7 +203,7 @@ export default function Home() {
         at: string;
         warning?: string;
       };
-      setRouters(data.routers);
+      setRouters(data.routers.map(mergePhases));
       setSource(data.source);
       setLast(data.at);
       if (data.warning) setMessage(data.warning);
@@ -464,11 +466,13 @@ export default function Home() {
         <div className="phase-row">
           <Tabs value={phase} onValueChange={(v) => setPhase(String(v))}>
             <TabsList className="phase-tabs">
-              {['All phases', 'Phase 1', 'Phase 2', 'Phase 3'].map((p, i) => (
+              {['All phases', ...PHASES.map((p) => `Phase ${p}`)].map((p, i) => (
                 <TabsTrigger value={p} key={p}>
                   {p}
                   <span className="count">
-                    {i === 0 ? 48 : i === 1 ? 24 : 12}
+                    {i === 0
+                      ? routers.length
+                      : routers.filter((r) => r.phase === i).length}
                   </span>
                 </TabsTrigger>
               ))}
@@ -510,7 +514,10 @@ export default function Home() {
             <strong>
               {scoped.length}
               <small>
-                / {phase === 'All phases' ? 48 : phase === 'Phase 1' ? 24 : 12}
+                /{' '}
+                {routers.filter(
+                  (r) => phase === 'All phases' || r.phase === Number(phase.slice(-1)),
+                ).length}
               </small>
             </strong>
             <p>4G → Robustel R5020 5G</p>
@@ -555,7 +562,7 @@ export default function Home() {
           </article>
         </section>
         <section className="phase-cards">
-          {[1, 2, 3].map((p) => {
+          {PHASES.map((p) => {
             const rr = datedRouters.filter((r) => r.phase === p),
               c = rr.filter(isDone).length,
               h = rr.filter(isHanded).length;
@@ -569,7 +576,8 @@ export default function Home() {
                   <span className="phase-number">0{p}</span>
                   <strong>Phase {p}</strong>
                   <span className="phase-total">
-                    {p === 1 ? 24 : 12} routers <ArrowUpRight size={15} />
+                    {routers.filter((r) => r.phase === p).length} routers{}
+                    <ArrowUpRight size={15} />
                   </span>
                 </div>
                 <div className="phase-bottom">
@@ -594,7 +602,7 @@ export default function Home() {
                 {visible.length} routers
                 {phase !== 'All phases'
                   ? ` · ${phase}`
-                  : ' across three phases'}{' '}
+                  : ' across two phases'}{' '}
                 · Select a router to inspect or update
               </p>
             </div>
@@ -832,8 +840,8 @@ export default function Home() {
         <details className="source-notes">
           <summary>Data notes & attribution</summary>
           <p>
-            Phases follow the three sheet tabs: 24 / 12 / 12 routers. Each
-            router IP is one record. Blank continuation rows inherit only their
+            Phase 1 follows the first sheet tab; Phase 2 combines the second and
+            third sheet tabs. Each router IP is one record. Blank continuation rows inherit only their
             parent site details; missing GPS on a named router is not guessed.
             CCTV totals count individual entries, which may differ from summary
             cells. Status indicates project milestones, not live network uptime.
@@ -907,7 +915,7 @@ export default function Home() {
                   <a
                     target="_blank"
                     rel="noreferrer"
-                    href={`${SHEET}/edit#gid=${GIDS[selected.phase - 1]}&range=A${selected.row}:O${selected.row}`}
+                    href={`${SHEET}/edit#gid=${GIDS[(selected.sourcePhase ?? selected.phase) - 1]}&range=A${selected.row}:O${selected.row}`}
                   >
                     Source row ↗
                   </a>

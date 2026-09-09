@@ -1,6 +1,7 @@
 export type Router = {
   id: string;
   phase: number;
+  sourcePhase?: number;
   row: number;
   name: string;
   type: string;
@@ -32,6 +33,13 @@ export type HistoryEntry = {
 };
 export const SHEET =
   'https://docs.google.com/spreadsheets/d/1fNmXMehYd2Y6a46WbISAThfOHLIvTKf0ytYv9r9UFfM';
+export const PHASES = [1, 2] as const;
+export function mergePhases(r: Router): Router {
+  const sourcePhase = r.sourcePhase ?? r.phase;
+  return { ...r, sourcePhase, phase: sourcePhase === 3 ? 2 : sourcePhase };
+}
+
+// Keep the original sheet tabs and router IDs for saved statuses and history.
 export const GIDS = [0, 897242695, 804851942];
 export function csv(text: string): string[][] {
   const rows: string[][] = [];
@@ -152,7 +160,8 @@ export function parse(text: string, phase: number): Router[] {
     return [
       {
         id: `p${phase}-${cell(r, c.ip)}`,
-        phase,
+        phase: phase === 3 ? 2 : phase,
+        sourcePhase: phase,
         row: i + 1,
         name: cell(p, c.name),
         type,
