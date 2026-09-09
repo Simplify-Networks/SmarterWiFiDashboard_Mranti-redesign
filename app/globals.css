@@ -1405,6 +1405,7 @@ footer {
     .metrics article,
     .phase-cards button,
     .workspace,
+    .activity,
     .button,
     .photo-gallery,
     .map-caption,
@@ -1597,4 +1598,80 @@ footer {
   .theme-control svg {
     width: 13px;
   }
+}
+
+/* OSM has no dark basemap: invert the tile pane in dark theme */
+.dark .leaflet-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6);
+}
+
+/* Update history (router sheet + recent activity panel) */
+.who-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  color: #7c8a9e;
+}
+.who-row input {
+  flex: 1;
+}
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.history-list li {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-when {
+  color: #7c8a9e;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.history-who {
+  color: #416086;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.activity {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  overflow: hidden;
+  margin-top: 22px;
+}
+.activity .workspace-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.activity-list {
+  padding: 4px 24px 8px;
+}
+.activity-list li {
+  grid-template-columns: 130px minmax(120px, 1fr) 1fr auto;
+}
+.activity-list .text-button {
+  text-align: left;
+  font-weight: 500;
+}
+@media (max-width: 720px) {
+  .history-list li,
+  .activity-list li {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.dark .history-who {
+  color: #9db8d6;
+}
+.dark .history-when,
+.dark .who-row {
+  color: #8a9bb0;
 }

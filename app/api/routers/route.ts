@@ -1,8 +1,11 @@
-import { getSource } from '@/lib/source';
+import { getSourceCached } from '@/lib/source';
 import { getDb } from '@/db';
 import { statuses } from '@/db/schema';
-export async function GET() {
-  const data = await getSource();
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const data = await getSourceCached(
+    url.searchParams.get('fresh') === '1' ? 0 : 60000,
+  );
   try {
     const saved = await getDb().select().from(statuses);
     const map = new Map(saved.map((s) => [s.id, s]));
@@ -17,6 +20,7 @@ export async function GET() {
                 commission: s.commission,
                 handover: s.handover,
                 updatedAt: s.updatedAt,
+                updatedBy: s.updatedBy || undefined,
                 override: true,
               }
             : r;

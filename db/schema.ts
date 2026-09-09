@@ -4,6 +4,7 @@ export const statuses = sqliteTable('router_status', {
   commission: integer('commission', { mode: 'boolean' }).notNull(),
   handover: integer('handover', { mode: 'boolean' }).notNull(),
   updatedAt: text('updated_at').notNull(),
+  updatedBy: text('updated_by'),
 });
 export const history = sqliteTable('status_history', {
   id: text('id').primaryKey(),
@@ -12,4 +13,5 @@ export const history = sqliteTable('status_history', {
   handover: integer('handover', { mode: 'boolean' }).notNull(),
   action: text('action').notNull(),
   at: text('at').notNull(),
+  by: text('by'),
 });

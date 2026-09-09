@@ -8,6 +8,13 @@
       "when": 1788798089772,
       "tag": "0000_odd_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788925302568,
+      "tag": "0001_remarkable_arachne",
+      "breakpoints": true
     }
   ]
 }

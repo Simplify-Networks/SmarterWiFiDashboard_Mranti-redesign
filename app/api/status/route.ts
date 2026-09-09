@@ -1,7 +1,7 @@
 import { getDb } from '@/db';
 import { statuses, history } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { getSource } from '@/lib/source';
+import { getSourceCached } from '@/lib/source';
 export async function POST(req: Request) {
   const origin = req.headers.get('origin');
   if (origin && origin !== new URL(req.url).origin)
@@ -11,6 +11,7 @@ export async function POST(req: Request) {
     commission: boolean;
     handover: boolean;
     reset?: boolean;
+    by?: string;
   };
   try {
     const raw = await req.json();
@@ -29,7 +30,9 @@ export async function POST(req: Request) {
       { error: 'Commission the router before completing handover.' },
       { status: 400 },
     );
-  const data = await getSource();
+  const by =
+    typeof b.by === 'string' ? b.by.trim().slice(0, 60) || null : null;
+  const data = await getSourceCached();
   const r = data.routers.find((r) => r.id === b.id);
   if (!r)
     return Response.json(
@@ -45,10 +48,16 @@ export async function POST(req: Request) {
       ? db.delete(statuses).where(eq(statuses.id, b.id))
       : db
           .insert(statuses)
-          .values({ id: b.id, commission: c, handover: h, updatedAt: at })
+          .values({
+            id: b.id,
+            commission: c,
+            handover: h,
+            updatedAt: at,
+            updatedBy: by,
+          })
           .onConflictDoUpdate({
             target: statuses.id,
-            set: { commission: c, handover: h, updatedAt: at },
+            set: { commission: c, handover: h, updatedAt: at, updatedBy: by },
           });
     await db.batch([
       mutation,
@@ -61,6 +70,7 @@ export async function POST(req: Request) {
           handover: h,
           action: b.reset ? 'restore-source' : 'update',
           at,
+          by,
         }),
     ]);
     return Response.json({ ok: true });

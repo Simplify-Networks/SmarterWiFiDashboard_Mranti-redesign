@@ -17,6 +17,16 @@ export type Router = {
   legacy: string;
   override?: boolean;
   updatedAt?: string;
+  updatedBy?: string;
+};
+export type HistoryEntry = {
+  id: string;
+  routerId: string;
+  commission: boolean;
+  handover: boolean;
+  action: string;
+  at: string;
+  by: string | null;
 };
 export const SHEET =
   'https://docs.google.com/spreadsheets/d/1fNmXMehYd2Y6a46WbISAThfOHLIvTKf0ytYv9r9UFfM';

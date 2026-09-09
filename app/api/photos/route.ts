@@ -1,4 +1,4 @@
-import { getSource } from '@/lib/source';
+import { getSourceCached } from '@/lib/source';
 import {
   safePhotoLink,
   driveId,
@@ -6,9 +6,6 @@ import {
   drivePhoto,
   type SitePhotos,
 } from '@/lib/site-photos';
-let sourceCache:
-  | { at: number; promise: ReturnType<typeof getSource> }
-  | undefined;
 const cache = new Map<string, { at: number; promise: Promise<SitePhotos> }>();
 async function resolve(link: string): Promise<SitePhotos> {
   const drive = driveId(link);
@@ -53,9 +50,7 @@ export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get('router');
   if (!id || id.length > 120)
     return Response.json({ error: 'Invalid router' }, { status: 400 });
-  if (!sourceCache || Date.now() - sourceCache.at > 60000)
-    sourceCache = { at: Date.now(), promise: getSource() };
-  const data = await sourceCache.promise;
+  const data = await getSourceCached();
   const router = data.routers.find((r) => r.id === id);
   if (!router)
     return Response.json({ error: 'Router not found' }, { status: 404 });

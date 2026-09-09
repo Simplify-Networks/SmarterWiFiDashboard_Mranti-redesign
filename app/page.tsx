@@ -15,6 +15,8 @@ import {
   Download,
   TriangleAlert,
   CalendarDays,
+  History,
+  UserRound,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -46,7 +48,14 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import { Router, SHEET, GIDS, parse, status } from '@/lib/routers';
+import {
+  Router,
+  HistoryEntry,
+  SHEET,
+  GIDS,
+  parse,
+  status,
+} from '@/lib/routers';
 import ParkMap from './park-map';
 import { RouterPhotoHover, SitePhotoGallery } from './site-photos';
 function weekLabel() {
@@ -75,6 +84,12 @@ const fmt = (d: string) =>
     hour: '2-digit',
     minute: '2-digit',
   });
+function describe(h: HistoryEntry) {
+  if (h.action === 'restore-source') return 'Restored source status';
+  if (h.handover) return 'Handed over';
+  if (h.commission) return 'Commissioned';
+  return 'Set to pending';
+}
 function Choice({
   value,
   onChange,
@@ -130,7 +145,10 @@ export default function Home() {
     [last, setLast] = useState(''),
     [commission, setCommission] = useState(false),
     [handover, setHandover] = useState(false),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [who, setWho] = useState(''),
+    [routerHistory, setRouterHistory] = useState<HistoryEntry[]>([]),
+    [activity, setActivity] = useState<HistoryEntry[]>([]);
   function changeTheme(next: 'light' | 'dark') {
     setTheme(next);
     document.documentElement.classList.toggle('dark', next === 'dark');
@@ -143,6 +161,7 @@ export default function Home() {
     let saved: string | null = null;
     try {
       saved = localStorage.getItem('mranti-theme');
+      setWho(localStorage.getItem('mranti-operator') || '');
     } catch {}
     const next =
       saved === 'dark' ||
@@ -154,10 +173,23 @@ export default function Home() {
     document.documentElement.classList.toggle('dark', next === 'dark');
     document.documentElement.style.colorScheme = next;
   }, []);
-  async function refresh() {
-    setBusy(true);
+  async function loadActivity() {
     try {
-      const res = await fetch('/api/routers', { cache: 'no-store' });
+      const res = await fetch('/api/history?limit=30', { cache: 'no-store' });
+      if (res.ok)
+        setActivity(
+          ((await res.json()) as { entries: HistoryEntry[] }).entries,
+        );
+    } catch {}
+  }
+  async function refresh(fresh = false) {
+    setBusy(true);
+    void loadActivity();
+    try {
+      const res = await fetch(
+        fresh ? '/api/routers?fresh=1' : '/api/routers',
+        { cache: 'no-store' },
+      );
       if (!res.ok) throw Error();
       const data = (await res.json()) as {
         routers: Router[];
@@ -185,7 +217,7 @@ export default function Home() {
     }
   }
   useEffect(() => {
-    refresh();
+    void refresh();
   }, []);
   const datedRouters = useMemo(
     () => filterByUpdateDate(routers, dateFrom, dateTo),
@@ -219,6 +251,21 @@ export default function Home() {
     setCommission(r.commission);
     setHandover(r.handover);
     setMessage('');
+    setRouterHistory([]);
+    fetch(`/api/history?router=${encodeURIComponent(r.id)}&limit=20`, {
+      cache: 'no-store',
+    })
+      .then((res) => (res.ok ? res.json() : { entries: [] }))
+      .then((d) =>
+        setRouterHistory((d as { entries: HistoryEntry[] }).entries),
+      )
+      .catch(() => {});
+  }
+  function changeWho(v: string) {
+    setWho(v);
+    try {
+      localStorage.setItem('mranti-operator', v.trim());
+    } catch {}
   }
   async function save(reset = false) {
     if (!selected) return;
@@ -227,7 +274,13 @@ export default function Home() {
       const res = await fetch('/api/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selected.id, commission, handover, reset }),
+        body: JSON.stringify({
+          id: selected.id,
+          commission,
+          handover,
+          reset,
+          by: who.trim(),
+        }),
       });
       if (!res.ok)
         throw Error(
@@ -257,6 +310,8 @@ export default function Home() {
         'Handed over',
         'CCTVs',
         'Updated',
+        'Updated by',
+        'Issues',
       ],
       ...visible.map((r) => [
         r.name,
@@ -267,6 +322,8 @@ export default function Home() {
         r.handover,
         r.cameras.length,
         r.updatedAt || 'Source sheet',
+        r.updatedBy || '',
+        r.issues.join('; '),
       ]),
     ];
     const csv = lines
@@ -423,7 +480,7 @@ export default function Home() {
             {source}
             <button
               aria-label="Refresh Google Sheets"
-              onClick={refresh}
+              onClick={() => refresh(true)}
               disabled={busy}
             >
               <RefreshCw size={15} className={busy ? 'spin' : ''} />
@@ -718,6 +775,37 @@ export default function Home() {
             </span>
           </div>
         </section>
+        {activity.length > 0 && (
+          <section className="activity">
+            <div className="workspace-heading">
+              <div>
+                <h2>
+                  <History size={18} /> Recent updates
+                </h2>
+                <p>Latest status changes recorded in this dashboard</p>
+              </div>
+            </div>
+            <ul className="history-list activity-list">
+              {activity.map((h) => {
+                const r = routers.find((x) => x.id === h.routerId);
+                return (
+                  <li key={h.id}>
+                    <span className="history-when">{fmt(h.at)}</span>
+                    <button
+                      className="text-button"
+                      disabled={!r}
+                      onClick={() => r && open(r)}
+                    >
+                      {r ? r.name : h.routerId}
+                    </button>
+                    <span>{describe(h)}</span>
+                    <span className="history-who">{h.by || 'Unnamed'}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
         <div className="bottom-info">
           <span>
             <TriangleAlert size={15} />
@@ -856,6 +944,16 @@ export default function Home() {
                   />
                   Handover completed
                 </label>
+                <div className="who-row">
+                  <UserRound size={16} />
+                  <Input
+                    value={who}
+                    maxLength={60}
+                    placeholder="Your name (recorded with the update)"
+                    aria-label="Your name"
+                    onChange={(e) => changeWho(e.target.value)}
+                  />
+                </div>
                 <div className="save-row">
                   <button
                     className="button primary"
@@ -877,12 +975,32 @@ export default function Home() {
                 {selected.updatedAt && (
                   <p className="muted">
                     Last dashboard update: {fmt(selected.updatedAt)} MYT
+                    {selected.updatedBy ? ` by ${selected.updatedBy}` : ''}
                   </p>
                 )}
+                {routerHistory.length > 0 && (
+                  <>
+                    <h3>
+                      <History size={18} /> Update history{' '}
+                      <span>{routerHistory.length}</span>
+                    </h3>
+                    <ul className="history-list">
+                      {routerHistory.map((h) => (
+                        <li key={h.id}>
+                          <span className="history-when">{fmt(h.at)}</span>
+                          <span>{describe(h)}</span>
+                          <span className="history-who">
+                            {h.by || 'Unnamed'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 {message && (
-                  <p role="status" className="data-warning">
+                  <output className="data-warning">
                     {message}
-                  </p>
+                  </output>
                 )}
                 <h3>
                   <Camera size={18} /> Associated CCTVs{' '}
