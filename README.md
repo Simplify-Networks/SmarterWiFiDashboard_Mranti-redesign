@@ -3,7 +3,8 @@
 Weekly commissioning and handover tracker for MRANTI Park's three-phase
 5G router upgrade (48 Robustel R5020 routers), delivered by Simplify.
 
-- Live: https://mranti-5g-rollout.mranti.workers.dev
+- Live (GitHub Pages): https://simplify-networks.github.io/SmarterWiFiDashboard_Mranti-redesign/
+- API + database (Cloudflare Worker): https://mranti-5g-rollout.mranti.workers.dev (also serves the full page)
 - Source data: Google Sheet (three phase tabs), with a CSV snapshot fallback in `public/data/`
 - Status updates and history are stored in Cloudflare D1
 
@@ -16,4 +17,7 @@ pnpm dev
 
 ## Deploy
 
-See [DEPLOY.md](DEPLOY.md). In short: `npx wrangler login` once, then `pnpm run deploy`.
+See [DEPLOY.md](DEPLOY.md).
+
+- Page on GitHub Pages: pushed automatically on every commit to `main` (`.github/workflows/pages.yml`).
+- API on Cloudflare: `npx wrangler login` once, then `pnpm run deploy` whenever `app/api`, `lib` or `db` change.

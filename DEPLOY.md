@@ -1,6 +1,16 @@
 # Deployment
 
-Live URL: https://mranti-5g-rollout.mranti.workers.dev
+Two hosts, one app:
+
+| What | Where | How it deploys |
+|---|---|---|
+| Page (HTML/JS) | https://simplify-networks.github.io/SmarterWiFiDashboard_Mranti-redesign/ | GitHub Actions on every push to `main` |
+| API + D1 database | https://mranti-5g-rollout.mranti.workers.dev | `pnpm run deploy` (manual) |
+
+The Worker also serves the full page, so both URLs work. The GitHub Pages
+copy calls the Worker cross-origin; allowed origins are listed in
+`lib/cors.ts`. If the repo is renamed, update `REPO` in
+`vite.pages.config.ts` and the origin in `lib/cors.ts`.
 
 Hosted on Cloudflare Workers (personal account `ypyik0669@gmail.com`).
 Worker name `mranti-5g-rollout`; saved status updates live in the D1
