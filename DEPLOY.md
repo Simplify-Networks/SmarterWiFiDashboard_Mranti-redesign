@@ -73,6 +73,10 @@ Columns are located by header name (`Name`, `IP`, `Latitude`,
 in the sheet. Renaming a header will break parsing; the app then falls
 back to the snapshot and shows a warning.
 
+Optional column: add a `Hostname` header (any position) and the value shows
+in the router table, the detail panel, search and the CSV export. Leave it
+out and nothing changes.
+
 ## Refreshing the offline snapshot
 
 ```bash
