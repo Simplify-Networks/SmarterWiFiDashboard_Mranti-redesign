@@ -371,6 +371,11 @@ h1 span {
   color: #738196;
   font-size: 12px;
 }
+.hostname {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+}
 .source .ago {
   opacity: 0.75;
   white-space: nowrap;

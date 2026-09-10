@@ -7,6 +7,7 @@ export type Router = {
   type: string;
   connectTo: string;
   ip: string;
+  hostname: string;
   subnet: string;
   lat: number | null;
   lng: number | null;
@@ -89,6 +90,7 @@ export type Columns = {
   connectTo: number;
   legacy: number;
   ip: number;
+  hostname: number;
   subnet: number;
   cctvNames: number;
   cctvIps: number;
@@ -114,6 +116,8 @@ export function columns(header: string[]): Columns {
     connectTo: find((x) => x.startsWith('connect')),
     legacy: find((x) => x.startsWith('4g router')),
     ip: find((x) => x.startsWith('ip')),
+    // Optional: add a `Hostname` column to the sheet and it shows automatically.
+    hostname: find((x) => x.startsWith('hostname') || x.startsWith('host name')),
     subnet: find((x) => x.startsWith('subnet')),
     cctvNames: find((x) => x.startsWith('cctv')),
     cctvIps: find((x) => x.startsWith('ip'), 1),
@@ -179,6 +183,7 @@ export function parse(text: string, phase: number): Router[] {
         type,
         connectTo: cell(p, c.connectTo),
         ip: cell(r, c.ip),
+        hostname: cell(r, c.hostname),
         subnet: cell(r, c.subnet),
         lat: gps ? lat : null,
         lng: gps ? lng : null,

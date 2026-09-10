@@ -309,7 +309,7 @@ export default function Home() {
         (r) =>
           (filter === 'All statuses' || status(r) === filter) &&
           (type === 'All types' || r.type === type) &&
-          `${r.name} ${r.ip} ${r.connectTo} ${r.cameras.map((c) => `${c.name} ${c.ip}`).join(' ')}`
+          `${r.name} ${r.ip} ${r.hostname} ${r.connectTo} ${r.cameras.map((c) => `${c.name} ${c.ip}`).join(' ')}`
             .toLowerCase()
             .includes(search.toLowerCase()),
       ),
@@ -375,6 +375,7 @@ export default function Home() {
         'Deployment Category',
         'Type',
         'IP',
+        'Hostname',
         'Commissioned',
         'Handed over',
         'CCTVs',
@@ -388,6 +389,7 @@ export default function Home() {
         deploymentCategory(r.phase),
         r.type,
         r.ip,
+        r.hostname,
         r.commission,
         r.handover,
         r.cameras.length,
@@ -796,7 +798,12 @@ export default function Home() {
                         </TableCell>
                         <TableCell>{deploymentCategory(r.phase)}</TableCell>
                         <TableCell>{r.type}</TableCell>
-                        <TableCell className="mono">{r.ip}</TableCell>
+                        <TableCell className="mono">
+                          {r.ip}
+                          {r.hostname && (
+                            <span className="hostname">{r.hostname}</span>
+                          )}
+                        </TableCell>
                         <TableCell>{r.cameras.length}</TableCell>
                         <TableCell>
                           <Badge r={r} />
@@ -955,6 +962,12 @@ export default function Home() {
               <div className="detail-body">
                 <Badge r={selected} />
                 <dl>
+                  {selected.hostname && (
+                    <>
+                      <dt>Hostname</dt>
+                      <dd className="mono">{selected.hostname}</dd>
+                    </>
+                  )}
                   <dt>Router IP</dt>
                   <dd className="mono">{selected.ip}</dd>
                   <dt>Subnet</dt>
