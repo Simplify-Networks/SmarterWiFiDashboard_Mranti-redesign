@@ -63,6 +63,9 @@ export const POST = cors(async (req: Request) => {
       updatedBy: by,
       commissionedAt,
       handedOverAt,
+      sourcePhase: r.sourcePhase ?? r.phase,
+      row: r.row,
+      name: r.name,
     };
     const mutation = b.reset
       ? db.delete(statuses).where(eq(statuses.id, b.id))

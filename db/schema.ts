@@ -7,6 +7,11 @@ export const statuses = sqliteTable('router_status', {
   updatedBy: text('updated_by'),
   commissionedAt: text('commissioned_at'),
   handedOverAt: text('handed_over_at'),
+  // Where the router sat in the sheet when last saved; used to re-link the
+  // record if its IP (and therefore its id) changes in the sheet.
+  sourcePhase: integer('source_phase'),
+  row: integer('row'),
+  name: text('name'),
 });
 export const history = sqliteTable('status_history', {
   id: text('id').primaryKey(),

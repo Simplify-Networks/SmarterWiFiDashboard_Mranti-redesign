@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SNAPSHOT_DATE } from '@/lib/snapshot-date';
 import { api, asset } from '@/lib/paths';
 import {
@@ -156,7 +156,17 @@ export default function Home() {
     [handover, setHandover] = useState(false),
     [saving, setSaving] = useState(false),
     [routerHistory, setRouterHistory] = useState<HistoryEntry[]>([]),
-    [activity, setActivity] = useState<HistoryEntry[]>([]);
+    [activity, setActivity] = useState<HistoryEntry[]>([]),
+    [now, setNow] = useState(() => Date.now());
+  // Polling: the sheet has no push channel, so the page re-reads the Worker
+  // every POLL_MS while visible. The Worker caches Google Sheets for 15 s,
+  // so an edit in the sheet shows here within roughly half a minute.
+  const POLL_MS = 20000;
+  const inFlight = useRef(false);
+  const seq = useRef(0);
+  const lastJson = useRef('');
+  const selectedRef = useRef<Router | null>(null);
+  selectedRef.current = selected;
   function changeTheme(next: 'light' | 'dark') {
     setTheme(next);
     document.documentElement.classList.toggle('dark', next === 'dark');
@@ -189,8 +199,11 @@ export default function Home() {
         );
     } catch {}
   }
-  async function refresh(fresh = false) {
-    setBusy(true);
+  async function refresh(fresh = false, silent = false) {
+    if (silent && inFlight.current) return;
+    inFlight.current = true;
+    const mine = ++seq.current; // responses that arrive out of order are dropped
+    if (!silent) setBusy(true);
     void loadActivity();
     try {
       const res = await fetch(
@@ -204,11 +217,34 @@ export default function Home() {
         at: string;
         warning?: string;
       };
-      setRouters(data.routers.map(mergePhases));
+      if (mine !== seq.current) return;
+      const next = data.routers.map(mergePhases);
+      const json = JSON.stringify(next);
+      if (json !== lastJson.current) {
+        lastJson.current = json;
+        setRouters(next);
+        // Keep an open detail panel on the same router (by id, or by sheet
+        // row if its IP was just changed) without touching unsaved ticks.
+        const cur = selectedRef.current;
+        if (cur) {
+          const same =
+            next.find((r) => r.id === cur.id) ||
+            next.find(
+              (r) =>
+                (r.sourcePhase ?? r.phase) === (cur.sourcePhase ?? cur.phase) &&
+                r.row === cur.row &&
+                r.name === cur.name,
+            );
+          if (same) setSelected(same);
+        }
+      }
       setSource(data.source);
       setLast(data.at);
       if (data.warning) setMessage(data.warning);
+      else if (silent)
+        setMessage((m) => (m.startsWith('Live refresh unavailable') ? '' : m));
     } catch {
+      if (silent || mine !== seq.current) return; // keep the last good data
       const all = await Promise.all(
         [1, 2, 3].map(async (p) =>
           parse(await (await fetch(asset(`/data/phase${p}.csv`))).text(), p),
@@ -220,12 +256,41 @@ export default function Home() {
         'Live refresh unavailable. Showing the supplied sheet snapshot. Saved dashboard updates could not be loaded.',
       );
     } finally {
-      setBusy(false);
+      if (mine === seq.current) inFlight.current = false;
+      if (!silent) setBusy(false);
     }
   }
   useEffect(() => {
     void refresh();
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => void refresh(false, true), POLL_MS);
+    };
+    const stop = () => {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+    };
+    const onVisible = () => {
+      if (document.hidden) stop();
+      else {
+        void refresh(false, true);
+        start();
+      }
+    };
+    start();
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('online', onVisible);
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => {
+      stop();
+      clearInterval(tick);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('online', onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  const ago = last ? Math.max(0, Math.round((now - Date.parse(last)) / 1000)) : null;
   const datedRouters = useMemo(
     () => filterByMilestoneDate(routers, dateFrom, dateTo),
     [routers, dateFrom, dateTo],
@@ -486,6 +551,11 @@ export default function Home() {
               }
             />
             {source}
+            {ago !== null && source.startsWith('Live') && (
+              <span className="ago" title="Auto-refreshes every 20 seconds">
+                · updated {ago < 5 ? 'just now' : `${ago}s ago`}
+              </span>
+            )}
             <button
               aria-label="Refresh Google Sheets"
               onClick={() => refresh(true)}

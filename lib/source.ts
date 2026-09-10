@@ -31,9 +31,9 @@ export async function getSource() {
     };
   }
 }
-/** 60-second shared cache so map, photos and saves do not each re-fetch three Google Sheet tabs. */
+/** 15-second shared cache so map, photos and saves do not each re-fetch three Google Sheet tabs. */
 let cached: { at: number; promise: ReturnType<typeof getSource> } | undefined;
-export function getSourceCached(maxAgeMs = 60000) {
+export function getSourceCached(maxAgeMs = 15000) {
   if (!cached || Date.now() - cached.at > maxAgeMs)
     cached = { at: Date.now(), promise: getSource() };
   return cached.promise;

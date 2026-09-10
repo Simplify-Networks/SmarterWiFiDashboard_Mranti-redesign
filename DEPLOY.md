@@ -42,8 +42,22 @@ It is idempotent and only needs re-running if the schema changes.
   (remembered in the browser) in `status_history.by`.
 - `/api/history?router=<id>` returns one router's changes;
   `/api/history?limit=30` feeds the "Recent updates" panel.
-- Google Sheet reads are cached for 60 s; the refresh button forces a fresh
+- Google Sheet reads are cached for 15 s; the refresh button forces a fresh
   fetch with `/api/routers?fresh=1`.
+
+## Live updates
+
+The page polls `/api/routers` every 20 s while the tab is visible (paused
+when hidden, refreshed immediately when the tab comes back or the network
+returns). With the 15 s Worker cache, a sheet edit appears on every open
+dashboard within about 35 s. Polls are silent: no spinner, and a failed poll
+keeps the last good data. Out-of-order responses are dropped so a background
+poll can never overwrite a status that was just saved.
+
+Router ids are derived from the IP (`p<tab>-<ip>`). Each save records the
+sheet tab, row and site name; if an IP is edited in the sheet, `/api/routers`
+matches the orphaned record by tab + row + name and renames its id (and the
+history rows) so saved statuses follow the router.
 
 ## Milestone dates
 

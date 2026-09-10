@@ -371,6 +371,10 @@ h1 span {
   color: #738196;
   font-size: 12px;
 }
+.source .ago {
+  opacity: 0.75;
+  white-space: nowrap;
+}
 .source button {
   margin-left: 5px;
   padding: 5px;
