@@ -13,6 +13,7 @@ export type Router = {
   lng: number | null;
   commission: boolean;
   handover: boolean;
+  live?: boolean;
   photo: string;
   cameras: { name: string; ip: string; subnet: string }[];
   issues: string[];
@@ -99,6 +100,7 @@ export type Columns = {
   lng: number;
   commission: number;
   handover: number;
+  live: number;
   photo: number;
 };
 const norm = (h: string) => h.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -126,6 +128,7 @@ export function columns(header: string[]): Columns {
     lng: find((x) => x.startsWith('lon')),
     commission: find((x) => x.startsWith('commission')),
     handover: find((x) => x.startsWith('handover')),
+    live: find((x) => x === 'live'),
     photo: find((x) => x.includes('photo')),
   };
   const required: (keyof Columns)[] = [
@@ -189,6 +192,7 @@ export function parse(text: string, phase: number): Router[] {
         lng: gps ? lng : null,
         commission: cell(r, c.commission) === 'TRUE',
         handover: cell(r, c.handover) === 'TRUE',
+        live: /^(true|yes|1|live)$/i.test(cell(r, c.live)),
         photo: inherit(c.photo),
         legacy,
         cameras: Array.from(
@@ -211,4 +215,8 @@ export function status(r: Router) {
 /** Indoor CCTV commissioning is outside the dashboard reporting scope. */
 export function commissioningCctvCount(r: Pick<Router, 'type' | 'cameras'>): number {
   return r.type.trim().toLowerCase() === 'indoor' ? 0 : r.cameras.length;
+}
+
+export function isOutdoorLive(r: Pick<Router, 'type' | 'live'>): boolean {
+  return r.type.trim().toLowerCase() === 'outdoor' && r.live === true;
 }

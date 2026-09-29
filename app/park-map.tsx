@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { Router } from '@/lib/routers';
-import { status } from '@/lib/routers';
+import { status, isOutdoorLive } from '@/lib/routers';
 import 'leaflet/dist/leaflet.css';
 import { createRoot, type Root } from 'react-dom/client';
 import { SitePhotoGallery } from './site-photos';
@@ -50,15 +50,17 @@ export default function ParkMap({
         groups.forEach((rr) => {
           const r = rr[0];
           bounds.push([r.lat!, r.lng!]);
-          const color = rr.every((x) => x.handover)
+          const live = rr.some(isOutdoorLive);
+          const color = live ? 'live' : rr.every((x) => x.handover)
             ? 'green'
             : rr.every((x) => x.commission)
               ? 'blue'
               : rr.some((x) => x.commission || x.handover)
                 ? 'mixed'
                 : 'amber';
-          const symbol =
-            r.type === 'Outdoor' ? '⌁' : r.type === 'Indoor' ? '▤' : '◇';
+          const symbol = live
+            ? '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg>'
+            : r.type === 'Outdoor' ? '⌁' : r.type === 'Indoor' ? '▤' : '◇';
           const marker = L.marker([r.lat!, r.lng!], {
             icon: L.divIcon({
               className: 'map-marker',
@@ -66,7 +68,7 @@ export default function ParkMap({
               iconSize: [32, 32],
               iconAnchor: [16, 16],
             }),
-            title: rr.map((x) => `${x.name} — ${status(x)}`).join(','),
+            title: rr.map((x) => `${x.name} — ${isOutdoorLive(x) ? 'Live · ' : ''}${status(x)}`).join(','),
           }).addTo(map!);
           const preview = document.createElement('div');
           let previewRoot: Root | undefined;
@@ -98,7 +100,7 @@ export default function ParkMap({
             box.className = 'map-popup';
             rr.forEach((x) => {
               const b = document.createElement('button');
-              b.textContent = `${x.name} · ${x.ip} · ${status(x)}`;
+              b.textContent = `${x.name} · ${x.ip} · ${isOutdoorLive(x) ? 'Live · ' : ''}${status(x)}`;
               b.onclick = () => select.current(x);
               box.appendChild(b);
             });

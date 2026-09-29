@@ -1706,3 +1706,16 @@ footer {
   background: linear-gradient(90deg, #1b2636 25%, #27364a 50%, #1b2636 75%);
   background-size: 200% 100%;
 }
+
+/* The sheet Live flag takes precedence over the map status color. */
+.pin.live {
+  background: #087f73;
+  color: white;
+}
+.pin.live > span {
+  display: flex;
+}
+.router-symbol.live, .dark .router-symbol.live {
+  background: #d3f5e9;
+  color: #086657;
+}

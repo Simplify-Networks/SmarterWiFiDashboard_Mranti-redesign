@@ -14,6 +14,7 @@ import {
   Search,
   Building2,
   Antenna,
+  Video,
   Download,
   TriangleAlert,
   CalendarDays,
@@ -62,6 +63,7 @@ import {
   PHASES,
   deploymentCategory,
   commissioningCctvCount,
+  isOutdoorLive,
   mergePhases,
   parse,
   status,
@@ -737,10 +739,12 @@ export default function Home() {
                         <span
                           className={
                             'router-symbol ' +
-                            (r.type === 'Outdoor' ? 'outdoor' : 'indoor')
+                            (isOutdoorLive(r) ? 'live' : r.type === 'Outdoor' ? 'outdoor' : 'indoor')
                           }
                         >
-                          {r.type === 'Outdoor' ? (
+                          {isOutdoorLive(r) ? (
+                            <Video size={18} aria-label="Live outdoor site" />
+                          ) : r.type === 'Outdoor' ? (
                             <Antenna size={18} />
                           ) : r.type === 'Indoor' ? (
                             <Building2 size={18} />
@@ -853,6 +857,10 @@ export default function Home() {
             <span>
               <Antenna size={15} />
               Outdoor
+            </span>
+            <span>
+              <Video size={15} className="green-text" />
+              Live outdoor site
             </span>
             <span>
               <RouterIcon size={15} />
