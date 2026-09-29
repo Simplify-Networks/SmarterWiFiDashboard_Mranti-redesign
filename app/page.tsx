@@ -61,6 +61,7 @@ import {
   GIDS,
   PHASES,
   deploymentCategory,
+  commissioningCctvCount,
   mergePhases,
   parse,
   status,
@@ -321,7 +322,7 @@ export default function Home() {
       dateActive ? handedOverIn(r, dateFrom, dateTo) : r.handover;
   const done = scoped.filter(isDone).length,
     handed = scoped.filter(isHanded).length,
-    cameras = scoped.reduce((n, r) => n + r.cameras.length, 0);
+    cameras = scoped.reduce((n, r) => n + commissioningCctvCount(r), 0);
   function open(r: Router) {
     setSelected(r);
     setCommission(r.commission);
@@ -378,7 +379,7 @@ export default function Home() {
         'Hostname',
         'Commissioned',
         'Handed over',
-        'CCTVs',
+        'CCTVs in scope',
         'Commissioned on',
         'Handed over on',
         'Last update',
@@ -392,7 +393,7 @@ export default function Home() {
         r.hostname,
         r.commission,
         r.handover,
-        r.cameras.length,
+        commissioningCctvCount(r),
         r.commissionedAt ? malaysiaDate(r.commissionedAt) : r.commission ? 'Per source sheet' : '',
         r.handedOverAt ? malaysiaDate(r.handedOverAt) : r.handover ? 'Per source sheet' : '',
         r.updatedAt || 'Source sheet',
@@ -628,10 +629,10 @@ export default function Home() {
           </article>
           <article>
             <div className="metric-label">
-              Associated CCTVs <Camera />
+              CCTVs in scope <Camera />
             </div>
             <strong>{cameras}</strong>
-            <p>Counted from individual CCTV entries</p>
+            <p>Excludes CCTV attached to indoor routers</p>
           </article>
         </section>
         <section className="phase-cards">
@@ -772,7 +773,7 @@ export default function Home() {
                       'Deployment Category',
                       'Type',
                       'Router IP',
-                      'CCTVs',
+                      'CCTVs in scope',
                       'Status',
                       '',
                     ].map((h, i) => (
@@ -804,7 +805,7 @@ export default function Home() {
                             <span className="hostname">{r.hostname}</span>
                           )}
                         </TableCell>
-                        <TableCell>{r.cameras.length}</TableCell>
+                        <TableCell>{commissioningCctvCount(r)}</TableCell>
                         <TableCell>
                           <Badge r={r} />
                           {r.override && (
@@ -921,7 +922,8 @@ export default function Home() {
             T17. Standard Deployment contains the remaining routers from the second and third
             sheet tabs. Each router IP is one record. Blank continuation rows inherit only their
             parent site details; missing GPS on a named router is not guessed.
-            CCTV totals count individual entries, which may differ from summary
+            CCTV totals exclude cameras attached to indoor routers. Other CCTV
+            entries are counted individually, which may differ from summary
             cells. Status indicates project milestones, not live network uptime.
             Dashboard edits override the sheet until “Restore source status” is
             used. Refresh retrieves all three tabs.
@@ -1087,9 +1089,15 @@ export default function Home() {
                   </output>
                 )}
                 <h3>
-                  <Camera size={18} /> Associated CCTVs{' '}
+                  <Camera size={18} /> Source CCTV entries{' '}
                   <span>{selected.cameras.length}</span>
                 </h3>
+                {selected.type.trim().toLowerCase() === 'indoor' && (
+                  <p className="muted">
+                    Indoor CCTV commissioning is excluded from dashboard totals and reports.
+                    These source entries are shown for reference only.
+                  </p>
+                )}
                 {selected.cameras.length ? (
                   selected.cameras.map((c, i) => (
                     <div className="cctv" key={i}>

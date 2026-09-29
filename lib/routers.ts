@@ -207,3 +207,8 @@ export function parse(text: string, phase: number): Router[] {
 export function status(r: Router) {
   return r.handover ? 'Handed over' : r.commission ? 'Commissioned' : 'Pending';
 }
+
+/** Indoor CCTV commissioning is outside the dashboard reporting scope. */
+export function commissioningCctvCount(r: Pick<Router, 'type' | 'cameras'>): number {
+  return r.type.trim().toLowerCase() === 'indoor' ? 0 : r.cameras.length;
+}
