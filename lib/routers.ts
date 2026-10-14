@@ -41,7 +41,8 @@ export function deploymentCategory(phase: number): string {
 }
 // Explicit assignments retain source IDs so updates and history stay linked.
 const PHASE_ONE_ROUTER_IDS = new Set([
-  'p2-10.100.23.155', // Indoor Petronas 1
+  'p2-10.100.23.155', // Indoor Petronas 1 (previous IP)
+  'p2-192.168.251.1', // Indoor Petronas 1 (current IP)
   'p2-192.168.250.127', // Outdoor T17
 ]);
 function dashboardPhase(id: string, sourcePhase: number): number {
